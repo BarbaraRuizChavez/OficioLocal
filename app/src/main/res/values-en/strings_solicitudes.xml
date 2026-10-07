@@ -1,0 +1,12 @@
+<resources>
+    <string name="req_title">My requests</string>
+    <string name="req_empty">No requests</string>
+    <string name="req_cancel">Cancel request</string>
+    <string name="req_status_pending">Pending</string>
+    <string name="req_status_accepted">Accepted</string>
+    <string name="req_status_completed">Completed</string>
+    <string name="req_status_cancelled">Cancelled</string>
+    <string name="req_unassigned">Provider to be assigned</string>
+    <string name="req_error_datetime">Pick a date and time</string>
+    <string name="req_discard">Cancel</string>
+</resources>

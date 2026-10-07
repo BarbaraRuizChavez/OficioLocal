@@ -1,0 +1,12 @@
+<resources>
+    <string name="req_title">Mis solicitudes</string>
+    <string name="req_empty">No hay solicitudes</string>
+    <string name="req_cancel">Cancelar solicitud</string>
+    <string name="req_status_pending">Pendiente</string>
+    <string name="req_status_accepted">Aceptada</string>
+    <string name="req_status_completed">Completada</string>
+    <string name="req_status_cancelled">Cancelada</string>
+    <string name="req_unassigned">Prestador por asignar</string>
+    <string name="req_error_datetime">Elige fecha y hora</string>
+    <string name="req_discard">Cancelar</string>
+</resources>
