@@ -1,6 +1,9 @@
 package com.example.oficiolocal.data.repository
 
 import com.example.oficiolocal.domain.Review
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 class ReviewRepository {
     private val reviews = mutableListOf(
@@ -20,7 +23,7 @@ class ReviewRepository {
             userName = userName,
             rating = rating,
             comment = comment,
-            date = "2026-03-01"
+            date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
         )
         reviews.add(newReview)
         return newReview

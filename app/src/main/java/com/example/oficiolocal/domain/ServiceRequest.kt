@@ -12,5 +12,6 @@ data class ServiceRequest(
     val status: RequestStatus,
     val dateMillis: Long?,
     val hour: Int?,
-    val minute: Int?
+    val minute: Int?,
+    val needsMaterials: Boolean = false
 )

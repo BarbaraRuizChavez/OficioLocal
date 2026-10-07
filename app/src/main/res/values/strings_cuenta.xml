@@ -38,4 +38,5 @@
     <string name="review_hint">Escribe tu reseña</string>
     <string name="review_send">Enviar reseña</string>
     <string name="star_label">%1$d estrellas</string>
+    <string name="notifications">Notificaciones</string>
 </resources>
