@@ -9,4 +9,8 @@ object Routes {
     const val PROVIDER_DETAIL = "provider_detail/{providerId}"
 
     fun buildProviderDetailRoute(providerId: String) = "provider_detail/$providerId"
+    const val NEW_REQUEST = "new_request?providerId={providerId}"
+
+    fun buildNewRequestRoute(providerId: String? = null): String =
+        if (providerId != null) "new_request?providerId=$providerId" else "new_request"
 }
