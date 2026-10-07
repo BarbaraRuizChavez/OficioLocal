@@ -2,7 +2,6 @@ package com.example.oficiolocal.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -25,7 +24,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
@@ -42,6 +40,8 @@ import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.ui.screens.auth.LoginScreen
 import com.example.oficiolocal.ui.screens.favorites.FavoritesScreen
 import com.example.oficiolocal.ui.screens.profile.ProfileScreen
+import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
+import com.example.oficiolocal.ui.screens.requests.NewRequestScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
 
@@ -150,11 +150,14 @@ fun AppNavGraph(navController: NavHostController) {
                         )
                     }
 
-                    // Barbara: reemplaza este bloque por su pantalla de Solicitudes
                     composable(Routes.REQUESTS) {
-                        Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                            Text(stringResource(R.string.nav_requests))
-                        }
+                        MyRequestsScreen(
+                            onNewRequest = { navController.navigate(Routes.NEW_REQUEST) }
+                        )
+                    }
+
+                    composable(Routes.NEW_REQUEST) {
+                        NewRequestScreen(onDone = { navController.popBackStack() })
                     }
 
                     composable(Routes.FAVORITES) {
