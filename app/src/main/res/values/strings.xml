@@ -1,3 +1,33 @@
 <resources>
-    <string name="app_name">OficioLocal</string>
+    <string name="app_name">Manos a la Obra</string>
+
+    <!-- Menú -->
+    <string name="nav_home">Inicio</string>
+    <string name="nav_requests">Solicitudes</string>
+    <string name="nav_favorites">Favoritos</string>
+    <string name="nav_profile">Perfil</string>
+
+    <!-- Inicio -->
+    <string name="search_hint">Buscar prestador</string>
+    <string name="filter_trade">Oficio</string>
+    <string name="all">Todos</string>
+    <string name="trade_plumbing">Plomería</string>
+    <string name="trade_electricity">Electricidad</string>
+    <string name="trade_carpentry">Carpintería</string>
+    <string name="trade_tech">Soporte técnico</string>
+    <string name="available_today">Disponible hoy</string>
+    <string name="request_service">Solicitar servicio</string>
+
+    <!-- Nueva solicitud -->
+    <string name="description">Descripción del problema</string>
+    <string name="field_required">Este campo es obligatorio</string>
+    <string name="urgency">Urgencia</string>
+    <string name="urgency_low">Baja</string>
+    <string name="urgency_medium">Media</string>
+    <string name="urgency_high">Alta</string>
+    <string name="needs_materials">Requiere materiales</string>
+    <string name="pick_date">Elegir fecha</string>
+    <string name="pick_time">Elegir hora</string>
+    <string name="send">Enviar solicitud</string>
+    <string name="ok">Aceptar</string>
 </resources>
