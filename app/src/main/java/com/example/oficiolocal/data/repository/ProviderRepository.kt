@@ -1,24 +1,62 @@
 package com.example.oficiolocal.data.repository
 
 import com.example.oficiolocal.domain.Provider
-import com.example.oficiolocal.domain.Trade
-import kotlinx.coroutines.flow.Flow
-import kotlinx.coroutines.flow.MutableStateFlow
 
-interface ProviderRepository {
-    val providers: Flow<List<Provider>>
-}
-
-/** Datos de prueba. En la siguiente etapa se reemplaza por Room + Retrofit. */
-class FakeProviderRepository : ProviderRepository {
-    private val data = MutableStateFlow(
-        listOf(
-            Provider("1", "Juan Pérez", Trade.PLUMBING, "Centro", 4.8, 350, true),
-            Provider("2", "María López", Trade.ELECTRICITY, "Norte", 4.5, 400, false),
-            Provider("3", "Carlos Ruiz", Trade.CARPENTRY, "Sur", 4.2, 500, true),
-            Provider("4", "Ana Torres", Trade.TECH, "Centro", 4.9, 300, true),
-            Provider("5", "Luis Gómez", Trade.PLUMBING, "Norte", 4.0, 280, false)
+class ProviderRepository {
+    private val providersList = listOf(
+        Provider(
+            id = "1",
+            name = "Carlos Mendoza",
+            category = "Plomería",
+            location = "Centro",
+            rating = 4.8,
+            reviewCount = 15,
+            priceRange = "$200 - $500",
+            schedule = "Lun - Sáb: 8:00 AM - 7:00 PM",
+            phone = "4451234567",
+            description = "Plomero certificado con más de 10 años de experiencia en reparación de fugas e instalación sanitaria.",
+            services = listOf("Reparación de fugas", "Instalación de tanques", "Destape de cañerías")
+        ),
+        Provider(
+            id = "2",
+            name = "Ana Gómez",
+            category = "Electricidad",
+            location = "Norte",
+            rating = 4.9,
+            reviewCount = 22,
+            priceRange = "$300 - $800",
+            schedule = "Lun - Vie: 9:00 AM - 5:00 PM",
+            phone = "4457654321",
+            description = "Técnica electricista enfocada en instalaciones residenciales y mantenimiento.",
+            services = listOf("Cableado residencial", "Solución de cortocircuitos", "Instalación de lámparas")
+        ),
+        Provider(
+            id = "3",
+            name = "Roberto Silva",
+            category = "Carpintería",
+            location = "Sur",
+            rating = 4.6,
+            reviewCount = 9,
+            priceRange = "$400 - $1200",
+            schedule = "Lun - Sáb: 9:00 AM - 6:00 PM",
+            phone = "4459876543",
+            description = "Fabricación y reparación de muebles a medida, puertas y closets.",
+            services = listOf("Reparación de puertas", "Muebles a medida", "Lijado y barnizado")
         )
     )
-    override val providers: Flow<List<Provider>> = data
+
+    fun getProviders(query: String = "", categoryFilter: String? = null): List<Provider> {
+        return providersList.filter { provider ->
+            val matchesQuery = provider.name.contains(query, ignoreCase = true) ||
+                    provider.category.contains(query, ignoreCase = true) ||
+                    provider.location.contains(query, ignoreCase = true)
+            val matchesCategory = categoryFilter == null || provider.category.equals(categoryFilter, ignoreCase = true)
+
+            matchesQuery && matchesCategory
+        }
+    }
+
+    fun getProviderById(id: String): Provider? {
+        return providersList.find { it.id == id }
+    }
 }

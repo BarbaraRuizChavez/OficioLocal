@@ -1,12 +1,16 @@
-package di
+package com.example.oficiolocal.di
 
-import com.example.oficiolocal.data.repository.FakeProviderRepository
-import com.example.oficiolocal.data.repository.FakeRequestRepository
+import com.example.oficiolocal.data.repository.AuthRepository
+import com.example.oficiolocal.data.repository.FavoriteRepository
 import com.example.oficiolocal.data.repository.ProviderRepository
 import com.example.oficiolocal.data.repository.RequestRepository
+import com.example.oficiolocal.data.repository.ReviewRepository
+import com.example.oficiolocal.data.repository.SettingsRepository
 
-/** Inyección manual para arrancar. Se puede migrar a Hilt después. */
 object ServiceLocator {
-    val providerRepository: ProviderRepository by lazy { FakeProviderRepository() }
-    val requestRepository: RequestRepository by lazy { FakeRequestRepository() }
+    val authRepository by lazy { AuthRepository() }
+    val favoriteRepository by lazy { FavoriteRepository() }
+    val providerRepository by lazy { ProviderRepository() }
+    val reviewRepository by lazy { ReviewRepository() }
+    val settingsRepository by lazy { SettingsRepository() }
 }
