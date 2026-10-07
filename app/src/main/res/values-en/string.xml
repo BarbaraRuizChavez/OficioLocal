@@ -1,0 +1,33 @@
+<resources>
+    <string name="app_name">OficioLocal</string>
+
+    <!-- Menu -->
+    <string name="nav_home">Home</string>
+    <string name="nav_requests">Requests</string>
+    <string name="nav_favorites">Favorites</string>
+    <string name="nav_profile">Profile</string>
+
+    <!-- Home -->
+    <string name="search_hint">Search provider</string>
+    <string name="filter_trade">Trade</string>
+    <string name="all">All</string>
+    <string name="trade_plumbing">Plumbing</string>
+    <string name="trade_electricity">Electrical</string>
+    <string name="trade_carpentry">Carpentry</string>
+    <string name="trade_tech">Tech support</string>
+    <string name="available_today">Available today</string>
+    <string name="request_service">Request service</string>
+
+    <!-- New request -->
+    <string name="description">Problem description</string>
+    <string name="field_required">This field is required</string>
+    <string name="urgency">Urgency</string>
+    <string name="urgency_low">Low</string>
+    <string name="urgency_medium">Medium</string>
+    <string name="urgency_high">High</string>
+    <string name="needs_materials">Requires materials</string>
+    <string name="pick_date">Pick date</string>
+    <string name="pick_time">Pick time</string>
+    <string name="send">Send request</string>
+    <string name="ok">OK</string>
+</resources>
