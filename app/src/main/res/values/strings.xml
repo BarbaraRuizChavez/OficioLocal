@@ -1,6 +1,6 @@
 <resources>
-<<<<<<< Updated upstream
-    <string name="app_name">Manos a la Obra</string>
+
+    <string name="app_name">OficioLocal</string>
 
     <!-- Menú -->
     <string name="nav_home">Inicio</string>
@@ -31,8 +31,8 @@
     <string name="pick_time">Elegir hora</string>
     <string name="send">Enviar solicitud</string>
     <string name="ok">Aceptar</string>
-=======
-    <string name="app_name">OficioLocal</string>
+
+    <!-- Estados de solicitudes -->
     <string name="status_sent">Enviada</string>
     <string name="status_in_review">En revisión</string>
     <string name="status_accepted">Aceptada</string>
@@ -41,14 +41,17 @@
     <string name="status_rejected">Rechazada</string>
     <string name="status_cancelled">Cancelada</string>
 
+    <!-- Oficios -->
     <string name="job_plumbing">Plomería</string>
     <string name="job_electricity">Electricidad</string>
     <string name="job_carpentry">Carpintería</string>
     <string name="job_technician">Técnico</string>
 
+    <!-- Comunes -->
     <string name="common_ok">Aceptar</string>
     <string name="common_cancel">Cancelar</string>
 
+    <!-- Formulario -->
     <string name="form_title">Solicitar servicio</string>
     <string name="form_job_type">Tipo de trabajo</string>
     <string name="form_description">Describe el problema</string>
@@ -59,20 +62,26 @@
     <string name="form_pick_time">Elegir hora</string>
     <string name="form_send">Enviar solicitud</string>
     <string name="form_sent">Solicitud %1$s enviada</string>
+
     <string name="err_description">Escribe una descripción</string>
     <string name="err_location">Indica dónde se realizará el servicio</string>
     <string name="err_datetime">Elige fecha y hora</string>
 
+    <!-- Seguimiento -->
     <string name="tracking_title">Mis solicitudes</string>
     <string name="tracking_empty">Aún no tienes solicitudes</string>
     <string name="tracking_unassigned">Prestador por asignar</string>
     <string name="tracking_id">Solicitud %1$s</string>
     <string name="tracking_urgent">Urgente</string>
+
+    <!-- Detalle -->
     <string name="detail_cancel">Cancelar solicitud</string>
     <string name="detail_contact">Contactar al prestador</string>
     <string name="detail_rate">Calificar servicio</string>
+
+    <!-- Cancelar -->
     <string name="cancel_title">¿Cancelar la solicitud?</string>
     <string name="cancel_text">Esta acción no se puede deshacer.</string>
     <string name="cancel_keep">Conservar</string>
->>>>>>> Stashed changes
+
 </resources>
