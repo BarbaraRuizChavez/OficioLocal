@@ -15,4 +15,8 @@ object ServiceLocator {
     val reviewRepository by lazy { ReviewRepository() }
     val settingsRepository by lazy { SettingsRepository() }
     val requestRepository: RequestRepository by lazy { FakeRequestRepository() }
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> 6d60df0f5c4f05546e29261b3db698c48ec30c97
