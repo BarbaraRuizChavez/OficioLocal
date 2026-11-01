@@ -4,8 +4,10 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.oficiolocal.R
 import com.example.oficiolocal.di.ServiceLocator
+import kotlinx.coroutines.launch
 
 class LoginViewModel : ViewModel() {
     private val authRepository = ServiceLocator.authRepository
@@ -48,16 +50,18 @@ class LoginViewModel : ViewModel() {
         }
         if (errorRes != null) return
 
-        val ok = if (isRegister) {
-            authRepository.register(name, email, password, isProvider)
-        } else {
-            authRepository.login(email, password)
-        }
+        viewModelScope.launch {
+            val ok = if (isRegister) {
+                authRepository.register(name, email, password, isProvider)
+            } else {
+                authRepository.login(email, password)
+            }
 
-        if (ok) {
-            onSuccess()
-        } else {
-            errorRes = if (isRegister) R.string.error_email_taken else R.string.error_credentials
+            if (ok) {
+                onSuccess()
+            } else {
+                errorRes = if (isRegister) R.string.error_email_taken else R.string.error_credentials
+            }
         }
     }
 }
