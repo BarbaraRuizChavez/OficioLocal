@@ -1,31 +1,51 @@
 package com.example.oficiolocal.data.repository
 
+import com.example.oficiolocal.data.local.dao.ReviewDao
+import com.example.oficiolocal.data.local.entity.ReviewEntity
+import com.example.oficiolocal.data.local.entity.toDomain
 import com.example.oficiolocal.domain.Review
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import java.util.UUID
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
-class ReviewRepository {
-    private val reviews = mutableListOf(
-        Review("1", "1", "María López", 5.0, "Excelente servicio, llegó a tiempo y resolvió la fuga.", "2026-02-10"),
-        Review("2", "1", "Juan Pérez", 4.5, "Muy profesional, recomendado.", "2026-02-15"),
-        Review("3", "2", "Carla Gómez", 5.0, "Hizo la instalación eléctrica súper rápido.", "2026-02-20")
-    )
+/** Reseñas guardadas en Room. En la siguiente etapa se sincronizan con la API. */
+class ReviewRepository(private val dao: ReviewDao) {
 
-    fun getReviewsByProvider(providerId: String): List<Review> {
-        return reviews.filter { it.providerId == providerId }
+    private val seedMutex = Mutex()
+
+    suspend fun seedIfEmpty() = seedMutex.withLock {
+        if (dao.count() == 0) {
+            val now = System.currentTimeMillis()
+            listOf(
+                ReviewEntity("seed-1", "1", "María López", 5.0, "Excelente servicio, llegó a tiempo y resolvió la fuga.", "2026-02-10", now, false),
+                ReviewEntity("seed-2", "1", "Juan Pérez", 4.5, "Muy profesional, recomendado.", "2026-02-15", now, false),
+                ReviewEntity("seed-3", "2", "Carla Gómez", 5.0, "Hizo la instalación eléctrica súper rápido.", "2026-02-20", now, false)
+            ).forEach { dao.insert(it) }
+        }
     }
 
-    fun addReview(providerId: String, userName: String, rating: Double, comment: String): Review {
-        val newReview = Review(
-            id = (reviews.size + 1).toString(),
-            providerId = providerId,
-            userName = userName,
-            rating = rating,
-            comment = comment,
-            date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date())
+    fun observeByProvider(providerId: String): Flow<List<Review>> =
+        dao.observeByProvider(providerId).map { list -> list.map { it.toDomain() } }
+
+    suspend fun addReview(providerId: String, userName: String, rating: Double, comment: String) {
+        dao.insert(
+            ReviewEntity(
+                id = UUID.randomUUID().toString(),
+                providerId = providerId,
+                userName = userName,
+                rating = rating,
+                comment = comment,
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                updatedAt = System.currentTimeMillis(),
+                pendingSync = true
+            )
         )
-        reviews.add(newReview)
-        return newReview
     }
+
+    suspend fun deleteReview(id: String) = dao.delete(id)
 }
