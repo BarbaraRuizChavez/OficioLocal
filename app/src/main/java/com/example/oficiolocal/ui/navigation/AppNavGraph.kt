@@ -41,9 +41,9 @@ import com.example.oficiolocal.ui.screens.auth.LoginScreen
 import com.example.oficiolocal.ui.screens.favorites.FavoritesScreen
 import com.example.oficiolocal.ui.screens.profile.ProfileScreen
 import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
-import com.example.oficiolocal.ui.screens.requests.NewRequestScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
+import com.example.oficiolocal.ui.screens.request.NewRequestScreen
 
 private data class NavItem(
     @StringRes val label: Int,
@@ -157,7 +157,22 @@ fun AppNavGraph(navController: NavHostController) {
                     }
 
                     composable(Routes.NEW_REQUEST) {
-                        NewRequestScreen(onDone = { navController.popBackStack() })
+                        NewRequestScreen(
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    }
+
+                    composable(
+                        route = Routes.NEW_REQUEST_PROVIDER,
+                        arguments = listOf(
+                            navArgument("providerId") {
+                                type = NavType.StringType
+                            }
+                        )
+                    ) {
+                        NewRequestScreen(
+                            onBackClick = { navController.popBackStack() }
+                        )
                     }
 
                     composable(Routes.FAVORITES) {
@@ -187,7 +202,12 @@ fun AppNavGraph(navController: NavHostController) {
                         val providerId = backStackEntry.arguments?.getString("providerId") ?: ""
                         ProviderDetailScreen(
                             providerId = providerId,
-                            onBackClick = { navController.popBackStack() }
+                            onBackClick = { navController.popBackStack() },
+                            onRequestClick = {
+                                navController.navigate(
+                                    Routes.buildNewRequestRoute(providerId)
+                                )
+                            }
                         )
                     }
                 }

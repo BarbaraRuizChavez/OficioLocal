@@ -62,6 +62,8 @@
     <string name="form_pick_time">Elegir hora</string>
     <string name="form_send">Enviar solicitud</string>
     <string name="form_sent">Solicitud %1$s enviada</string>
+    <string name="form_for_provider">Solicitud para %1$s</string>
+    <string name="form_any_provider">Solicitud para cualquier prestador</string>
 
     <string name="err_description">Escribe una descripción</string>
     <string name="err_location">Indica dónde se realizará el servicio</string>
@@ -83,5 +85,8 @@
     <string name="cancel_title">¿Cancelar la solicitud?</string>
     <string name="cancel_text">Esta acción no se puede deshacer.</string>
     <string name="cancel_keep">Conservar</string>
+
+    <!-- Regresar -->
+    <string name="back">Regresar</string>
 
 </resources>
