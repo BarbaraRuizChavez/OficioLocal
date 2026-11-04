@@ -30,4 +30,9 @@
     <string name="pick_time">Pick time</string>
     <string name="send">Send request</string>
     <string name="ok">OK</string>
+
+    <!-- Back / provider form -->
+    <string name="back">Back</string>
+    <string name="form_for_provider">Request for %1$s</string>
+    <string name="form_any_provider">Request for any provider</string>
 </resources>
