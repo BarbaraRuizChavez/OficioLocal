@@ -1,32 +1,41 @@
+
 package com.example.oficiolocal.ui.screens.auth
 
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.Email
+import androidx.compose.material.icons.outlined.Lock
+import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.Visibility
+import androidx.compose.material.icons.outlined.VisibilityOff
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
+
+private val Navy = Color(0xFF071A46)
+private val Blue = Color(0xFF0757C8)
+private val Orange = Color(0xFFFF9418)
+private val LightBackground = Color(0xFFF4F7FC)
+private val TextGray = Color(0xFF667085)
 
 @Composable
 fun LoginScreen(
@@ -34,101 +43,293 @@ fun LoginScreen(
     modifier: Modifier = Modifier,
     viewModel: LoginViewModel = viewModel()
 ) {
-    Box(
-        modifier = modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    var passwordVisible by remember { mutableStateOf(false) }
+
+    BoxWithConstraints(
+        modifier = modifier
+            .fillMaxSize()
+            .background(Navy)
     ) {
+        // Guardamos la altura para utilizarla dentro del Column.
+        val alturaPantalla = this.maxHeight
+
+        // IMAGEN COMPLETA DE FONDO
+        Image(
+            painter = painterResource(id = R.drawable.logo_login),
+            contentDescription = "Fondo de OficioLocal",
+            modifier = Modifier.fillMaxSize(),
+            contentScale = ContentScale.Crop
+        )
+
+        // CONTENIDO ENCIMA DE LA IMAGEN
         Column(
             modifier = Modifier
-                .widthIn(max = 480.dp)
+                .fillMaxSize()
                 .verticalScroll(rememberScrollState())
-                .padding(24.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .imePadding()
+                .padding(horizontal = 22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = stringResource(R.string.app_name),
-                style = MaterialTheme.typography.headlineLarge
+            // ESPACIO SUPERIOR PARA EL DISEÑO DEL FONDO
+            Spacer(
+                modifier = Modifier.height(alturaPantalla * 0.43f)
             )
-            Text(
-                text = stringResource(
-                    if (viewModel.isRegister) R.string.auth_register else R.string.auth_login
+
+            // TARJETA BLANCA DEL FORMULARIO
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 460.dp),
+                shape = RoundedCornerShape(30.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = Color.White
                 ),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            if (viewModel.isRegister) {
-                OutlinedTextField(
-                    value = viewModel.name,
-                    onValueChange = viewModel::onNameChange,
-                    label = { Text(stringResource(R.string.auth_name)) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth()
+                elevation = CardDefaults.cardElevation(
+                    defaultElevation = 10.dp
                 )
-            }
+            ) {
+                Column(
+                    modifier = Modifier.padding(22.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
+                ) {
+                    // TÍTULO
+                    Text(
+                        text = if (viewModel.isRegister)
+                            "¡Crea tu cuenta!"
+                        else
+                            "¡Bienvenido!",
+                        fontSize = 27.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Navy
+                    )
 
-            OutlinedTextField(
-                value = viewModel.email,
-                onValueChange = viewModel::onEmailChange,
-                label = { Text(stringResource(R.string.auth_email)) },
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                    // DESCRIPCIÓN
+                    Text(
+                        text = if (viewModel.isRegister)
+                            "Regístrate para comenzar a utilizar nuestros servicios."
+                        else
+                            "Inicia sesión y encuentra los servicios que necesitas.",
+                        fontSize = 15.sp,
+                        color = TextGray
+                    )
 
-            OutlinedTextField(
-                value = viewModel.password,
-                onValueChange = viewModel::onPasswordChange,
-                label = { Text(stringResource(R.string.auth_password)) },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
-                modifier = Modifier.fillMaxWidth()
-            )
+                    // NOMBRE (SOLO REGISTRO)
+                    if (viewModel.isRegister) {
+                        OutlinedTextField(
+                            value = viewModel.name,
+                            onValueChange = viewModel::onNameChange,
+                            modifier = Modifier.fillMaxWidth(),
+                            label = {
+                                Text(stringResource(R.string.auth_name))
+                            },
+                            leadingIcon = {
+                                Icon(
+                                    imageVector = Icons.Outlined.Person,
+                                    contentDescription = null
+                                )
+                            },
+                            singleLine = true,
+                            shape = RoundedCornerShape(16.dp),
+                            colors = authFieldColors()
+                        )
+                    }
 
-            if (viewModel.isRegister) {
-                listOf(false to R.string.role_client, true to R.string.role_provider)
-                    .forEach { (asProvider, label) ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.clickable { viewModel.onRoleChange(asProvider) }
-                        ) {
-                            RadioButton(
-                                selected = viewModel.isProvider == asProvider,
-                                onClick = { viewModel.onRoleChange(asProvider) }
+                    // CORREO ELECTRÓNICO
+                    OutlinedTextField(
+                        value = viewModel.email,
+                        onValueChange = viewModel::onEmailChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text(stringResource(R.string.auth_email))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Email,
+                                contentDescription = null
                             )
-                            Text(stringResource(label))
+                        },
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Email
+                        ),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = authFieldColors()
+                    )
+
+                    // CONTRASEÑA
+                    OutlinedTextField(
+                        value = viewModel.password,
+                        onValueChange = viewModel::onPasswordChange,
+                        modifier = Modifier.fillMaxWidth(),
+                        label = {
+                            Text(stringResource(R.string.auth_password))
+                        },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = Icons.Outlined.Lock,
+                                contentDescription = null
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(
+                                onClick = {
+                                    passwordVisible = !passwordVisible
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = if (passwordVisible)
+                                        Icons.Outlined.Visibility
+                                    else
+                                        Icons.Outlined.VisibilityOff,
+                                    contentDescription = "Mostrar u ocultar contraseña"
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisible)
+                            VisualTransformation.None
+                        else
+                            PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(
+                            keyboardType = KeyboardType.Password
+                        ),
+                        singleLine = true,
+                        shape = RoundedCornerShape(16.dp),
+                        colors = authFieldColors()
+                    )
+
+                    // TIPO DE USUARIO (SOLO REGISTRO)
+                    if (viewModel.isRegister) {
+                        Text(
+                            text = "¿Cómo deseas registrarte?",
+                            color = Navy,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 15.sp
+                        )
+
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
+                            FilterChip(
+                                selected = !viewModel.isProvider,
+                                onClick = {
+                                    viewModel.onRoleChange(false)
+                                },
+                                label = {
+                                    Text(stringResource(R.string.role_client))
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
+
+                            FilterChip(
+                                selected = viewModel.isProvider,
+                                onClick = {
+                                    viewModel.onRoleChange(true)
+                                },
+                                label = {
+                                    Text(stringResource(R.string.role_provider))
+                                },
+                                modifier = Modifier.weight(1f)
+                            )
                         }
                     }
-            }
 
-            viewModel.errorRes?.let { error ->
-                Text(
-                    text = stringResource(error),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
+                    // MENSAJES DE ERROR
+                    viewModel.errorRes?.let { error ->
+                        Text(
+                            text = stringResource(error),
+                            color = MaterialTheme.colorScheme.error,
+                            fontSize = 13.sp
+                        )
+                    }
 
-            Button(
-                onClick = { viewModel.submit(onLoginSuccess) },
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(
-                        if (viewModel.isRegister) R.string.auth_register else R.string.auth_login
+                    // BOTÓN INICIAR SESIÓN / REGISTRARSE
+                    Button(
+                        onClick = {
+                            viewModel.submit(onLoginSuccess)
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(30.dp),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Orange,
+                            contentColor = Navy
+                        )
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (viewModel.isRegister)
+                                    R.string.auth_register
+                                else
+                                    R.string.auth_login
+                            ),
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    // SEPARADOR
+                    HorizontalDivider(
+                        color = LightBackground
                     )
-                )
+
+                    // CAMBIAR ENTRE LOGIN Y REGISTRO
+                    TextButton(
+                        onClick = {
+                            passwordVisible = false
+                            viewModel.toggleMode()
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = stringResource(
+                                if (viewModel.isRegister)
+                                    R.string.auth_to_login
+                                else
+                                    R.string.auth_to_register
+                            ),
+                            color = Navy,
+                            fontWeight = FontWeight.SemiBold,
+                            fontSize = 16.sp
+                        )
+                    }
+                }
             }
 
-            TextButton(
-                onClick = viewModel::toggleMode,
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Text(
-                    stringResource(
-                        if (viewModel.isRegister) R.string.auth_to_login else R.string.auth_to_register
-                    )
-                )
-            }
+            // PIE DE PANTALLA
+            Spacer(
+                modifier = Modifier.height(18.dp)
+            )
+
+            Text(
+                text = "© OficioLocal",
+                color = Color.White,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium
+            )
+
+            Spacer(
+                modifier = Modifier.height(20.dp)
+            )
         }
     }
 }
+
+// COLORES DE LOS CAMPOS
+@Composable
+private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
+    focusedTextColor = Navy,
+    unfocusedTextColor = Navy,
+
+    focusedContainerColor = Color.White,
+    unfocusedContainerColor = Color.White,
+
+    focusedBorderColor = Blue,
+    unfocusedBorderColor = Color(0xFFD9E0EB),
+
+    focusedLabelColor = Blue,
+    unfocusedLabelColor = TextGray,
+
+    cursorColor = Orange
+)
