@@ -9,5 +9,9 @@ object Routes {
     const val PROFILE = "profile"
     const val PROVIDER_DETAIL = "provider_detail/{providerId}"
 
+    const val NEW_REQUEST_PROVIDER = "new_request/{providerId}"
+
     fun buildProviderDetailRoute(providerId: String) = "provider_detail/$providerId"
+    fun buildNewRequestRoute(providerId: String) =
+        "new_request/$providerId"
 }

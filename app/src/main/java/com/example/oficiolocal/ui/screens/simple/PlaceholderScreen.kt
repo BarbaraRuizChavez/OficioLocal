@@ -154,7 +154,8 @@ fun ProviderListScreen(
 @Composable
 fun ProviderDetailScreen(
     providerId: String,
-    onBackClick: () -> Unit
+    onBackClick: () -> Unit,
+    onRequestClick: () -> Unit
 ) {
     val provider = remember(providerId) { ServiceLocator.providerRepository.getProviderById(providerId) }
 
@@ -223,6 +224,14 @@ fun ProviderDetailScreen(
                     Icon(Icons.Default.Call, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Llamar (${provider.phone})")
+                }
+
+                Spacer(modifier = Modifier.height(12.dp))
+                Button(
+                    onClick = onRequestClick,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text("Solicitar servicio")
                 }
             }
         }
