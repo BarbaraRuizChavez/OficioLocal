@@ -8,8 +8,11 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -17,8 +20,10 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -36,7 +41,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
 import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
+import com.example.oficiolocal.domain.JobType
 import com.example.oficiolocal.domain.Urgency
+import com.example.oficiolocal.ui.components.AppDatePickerDialog
+import com.example.oficiolocal.ui.components.AppTimePickerDialog
+import com.example.oficiolocal.ui.components.formatTime
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -79,6 +88,14 @@ fun MyRequestsScreen(
     var requestToDelete by remember { mutableStateOf<ServiceRequest?>(null) }
     var editDescription by remember { mutableStateOf("") }
     var editLocation by remember { mutableStateOf("") }
+    var editJobType by remember { mutableStateOf(JobType.PLUMBING) }
+    var editNeedsMaterials by remember { mutableStateOf(false) }
+    var editUrgency by remember { mutableStateOf(Urgency.MEDIUM) }
+    var editDateMillis by remember { mutableStateOf<Long?>(null) }
+    var editHour by remember { mutableStateOf<Int?>(null) }
+    var editMinute by remember { mutableStateOf<Int?>(null) }
+    var showEditDatePicker by remember { mutableStateOf(false) }
+    var showEditTimePicker by remember { mutableStateOf(false) }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
@@ -125,6 +142,12 @@ fun MyRequestsScreen(
                                 requestToEdit = request
                                 editDescription = request.description
                                 editLocation = request.location
+                                editJobType = request.jobType ?: JobType.PLUMBING
+                                editNeedsMaterials = request.needsMaterials
+                                editUrgency = request.urgency
+                                editDateMillis = request.dateMillis
+                                editHour = request.hour
+                                editMinute = request.minute
                             },
                             onCancel = { viewModel.onCancel(request.id) },
                             onDelete = { requestToDelete = request }
@@ -145,7 +168,13 @@ fun MyRequestsScreen(
             onDismissRequest = { requestToEdit = null },
             title = { Text(stringResource(R.string.req_edit_title)) },
             text = {
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(max = 420.dp)
+                        .verticalScroll(rememberScrollState()),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
                     OutlinedTextField(
                         value = editDescription,
                         onValueChange = { editDescription = it },
@@ -160,6 +189,46 @@ fun MyRequestsScreen(
                         modifier = Modifier.fillMaxWidth(),
                         singleLine = true
                     )
+                    Text(stringResource(R.string.form_job_type))
+                    JobType.entries.forEach { jobType ->
+                        FilterChip(
+                            selected = editJobType == jobType,
+                            onClick = { editJobType = jobType },
+                            label = { Text(stringResource(jobType.label)) }
+                        )
+                    }
+                    Text(stringResource(R.string.urgency))
+                    Urgency.entries.forEach { urgency ->
+                        FilterChip(
+                            selected = editUrgency == urgency,
+                            onClick = { editUrgency = urgency },
+                            label = { Text(urgencyLabel(urgency)) }
+                        )
+                    }
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Checkbox(
+                            checked = editNeedsMaterials,
+                            onCheckedChange = { editNeedsMaterials = it }
+                        )
+                        Text(stringResource(R.string.needs_materials))
+                    }
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        OutlinedButton(onClick = { showEditDatePicker = true }) {
+                            Text(
+                                editDateMillis?.let { formatRequestDate(it) }
+                                    ?: stringResource(R.string.form_pick_date)
+                            )
+                        }
+                        OutlinedButton(onClick = { showEditTimePicker = true }) {
+                            Text(
+                                if (editHour != null && editMinute != null) {
+                                    formatTime(editHour!!, editMinute!!)
+                                } else {
+                                    stringResource(R.string.form_pick_time)
+                                }
+                            )
+                        }
+                    }
                 }
             },
             confirmButton = {
@@ -168,12 +237,22 @@ fun MyRequestsScreen(
                         viewModel.onUpdate(
                             request.copy(
                                 description = editDescription.trim(),
-                                location = editLocation.trim()
+                                location = editLocation.trim(),
+                                jobType = editJobType,
+                                needsMaterials = editNeedsMaterials,
+                                urgency = editUrgency,
+                                dateMillis = editDateMillis,
+                                hour = editHour,
+                                minute = editMinute
                             )
                         )
                         requestToEdit = null
                     },
-                    enabled = editDescription.isNotBlank() && editLocation.isNotBlank()
+                    enabled = editDescription.isNotBlank() &&
+                        editLocation.isNotBlank() &&
+                        editDateMillis != null &&
+                        editHour != null &&
+                        editMinute != null
                 ) {
                     Text(stringResource(R.string.req_save))
                 }
@@ -206,6 +285,29 @@ fun MyRequestsScreen(
                     Text(stringResource(R.string.req_discard))
                 }
             }
+        )
+    }
+
+    if (showEditDatePicker) {
+        AppDatePickerDialog(
+            onConfirm = {
+                editDateMillis = it
+                showEditDatePicker = false
+            },
+            onDismiss = { showEditDatePicker = false },
+            initialDateMillis = editDateMillis
+        )
+    }
+    if (showEditTimePicker) {
+        AppTimePickerDialog(
+            onConfirm = { hour, minute ->
+                editHour = hour
+                editMinute = minute
+                showEditTimePicker = false
+            },
+            onDismiss = { showEditTimePicker = false },
+            initialHour = editHour ?: 9,
+            initialMinute = editMinute ?: 0
         )
     }
 }

@@ -17,9 +17,10 @@ import com.example.oficiolocal.R
 @Composable
 fun AppDatePickerDialog(
     onConfirm: (Long) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialDateMillis: Long? = null
 ) {
-    val state = rememberDatePickerState()
+    val state = rememberDatePickerState(initialSelectedDateMillis = initialDateMillis)
     DatePickerDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
@@ -40,9 +41,15 @@ fun AppDatePickerDialog(
 @Composable
 fun AppTimePickerDialog(
     onConfirm: (hour: Int, minute: Int) -> Unit,
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    initialHour: Int = 9,
+    initialMinute: Int = 0
 ) {
-    val state = rememberTimePickerState(initialHour = 9, initialMinute = 0, is24Hour = true)
+    val state = rememberTimePickerState(
+        initialHour = initialHour.coerceIn(0, 23),
+        initialMinute = initialMinute.coerceIn(0, 59),
+        is24Hour = true
+    )
     AlertDialog(
         onDismissRequest = onDismiss,
         confirmButton = {
