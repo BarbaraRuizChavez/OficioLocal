@@ -30,6 +30,7 @@ object ServiceLocator {
             // Sincronización con la API: si no hay internet, simplemente no hace nada.
             runCatching { providerRepository.refreshFromApi() }
             runCatching { roomRequestRepository.syncPending() }
+            runCatching { roomRequestRepository.refreshFromApi() }
         }
     }
 

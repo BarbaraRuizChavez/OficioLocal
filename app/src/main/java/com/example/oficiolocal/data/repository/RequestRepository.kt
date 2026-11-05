@@ -19,6 +19,7 @@ interface RequestRepository {
     suspend fun update(request: ServiceRequest)
     suspend fun cancel(id: String)
     suspend fun delete(id: String)
+    suspend fun refreshFromApi(): Boolean
 }
 
 /** Solicitudes: siempre se guardan primero en Room y después se envían a la API. */
@@ -69,6 +70,23 @@ class RoomRequestRepository(
         if (remoteId != null) scope.launch { remote.deleteRequest(remoteId) }
     }
 
+    /** Recupera solicitudes remotas y las combina con Room sin duplicar las ya sincronizadas. */
+    override suspend fun refreshFromApi(): Boolean {
+        val remoteRequests = remote.getRequests().getOrNull() ?: return false
+        val entities = remoteRequests
+            .filter { it.id.isNotBlank() }
+            .map { request ->
+                val existing = dao.getByRemoteId(request.id)
+                request.toEntity().copy(
+                    id = existing?.id ?: "remote-${request.id}",
+                    remoteId = request.id,
+                    createdAt = existing?.createdAt ?: System.currentTimeMillis()
+                )
+            }
+        dao.mergeRemote(entities)
+        return true
+    }
+
     /** Envía a la API las solicitudes que quedaron guardadas sin internet. */
     suspend fun syncPending() {
         dao.getUnsynced().forEach { sendToApi(it.id) }
@@ -111,4 +129,6 @@ class FakeRequestRepository : RequestRepository {
     }
 
     override suspend fun delete(id: String) = data.update { list -> list.filter { it.id != id } }
+
+    override suspend fun refreshFromApi(): Boolean = true
 }
