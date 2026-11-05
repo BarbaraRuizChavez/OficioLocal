@@ -19,11 +19,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.di.ServiceLocator
+import com.example.oficiolocal.R
 import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.components.ReviewsSection
@@ -62,6 +64,16 @@ class DirectoryViewModel : ViewModel() {
     }
 }
 
+@Composable
+private fun localizedTradeName(category: String): String = when (category.trim().lowercase()) {
+    "plomería", "plomeria", "plumbing" -> stringResource(R.string.trade_plumbing)
+    "electricidad", "electrical", "electrician" -> stringResource(R.string.trade_electricity)
+    "carpintería", "carpinteria", "carpentry" -> stringResource(R.string.trade_carpentry)
+    "técnico", "tecnico", "soporte técnico", "soporte tecnico", "technician", "tech support" ->
+        stringResource(R.string.trade_tech)
+    else -> category
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderListScreen(
@@ -69,7 +81,7 @@ fun ProviderListScreen(
     viewModel: DirectoryViewModel = viewModel()
 ) {
     Scaffold(
-        topBar = { TopAppBar(title = { Text("Directorio de Prestadores") }) }
+        topBar = { TopAppBar(title = { Text(stringResource(R.string.directory_title)) }) }
     ) { paddingValues ->
         Column(
             modifier = Modifier
@@ -81,8 +93,8 @@ fun ProviderListScreen(
                 value = viewModel.searchQuery,
                 onValueChange = { viewModel.onSearchQueryChange(it) },
                 modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text("Buscar por nombre o ubicación...") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = "Buscar") },
+                placeholder = { Text(stringResource(R.string.directory_search_hint)) },
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.directory_search)) },
                 singleLine = true
             )
 
@@ -93,7 +105,7 @@ fun ProviderListScreen(
                     FilterChip(
                         selected = viewModel.selectedCategory == category,
                         onClick = { viewModel.onCategorySelected(category) },
-                        label = { Text(category) }
+                        label = { Text(localizedTradeName(category)) }
                     )
                 }
             }
@@ -102,7 +114,7 @@ fun ProviderListScreen(
 
             if (viewModel.providersList.isEmpty()) {
                 Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("No se encontraron prestadores.")
+                    Text(stringResource(R.string.directory_empty))
                 }
             } else {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
@@ -137,13 +149,13 @@ fun ProviderListScreen(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "${provider.category} • ${provider.location}",
+                                    text = "${localizedTradeName(provider.category)} • ${provider.location}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    text = "Precio aprox: ${provider.priceRange}",
+                                    text = stringResource(R.string.provider_price_label, provider.priceRange),
                                     style = MaterialTheme.typography.bodySmall,
                                     fontWeight = FontWeight.Medium
                                 )
@@ -174,7 +186,9 @@ fun ProviderDetailScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(provider?.name ?: "Detalle del Prestador") },
+                title = {
+                    Text(provider?.name ?: stringResource(R.string.provider_detail_title))
+                },
                 actions = {
                     if (provider != null) {
                         FavoriteButton(isFavorite = isFavorite) {
@@ -186,7 +200,7 @@ fun ProviderDetailScreen(
                 },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
                     }
                 }
             )
@@ -194,7 +208,7 @@ fun ProviderDetailScreen(
     ) { paddingValues ->
         if (provider == null) {
             Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
-                Text("Prestador no encontrado")
+                Text(stringResource(R.string.provider_not_found))
             }
         } else {
             Column(
@@ -205,34 +219,42 @@ fun ProviderDetailScreen(
                     .padding(16.dp)
             ) {
                 Text(text = provider.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text(text = "${provider.category} • ${provider.location}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                Text(text = "${localizedTradeName(provider.category)} • ${provider.location}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
 
                 Spacer(modifier = Modifier.height(12.dp))
 
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     Spacer(modifier = Modifier.width(4.dp))
-                    Text(text = "${provider.rating} (${provider.reviewCount} reseñas)", style = MaterialTheme.typography.bodyLarge, fontWeight = FontWeight.Medium)
+                    Text(
+                        text = stringResource(
+                            R.string.provider_rating_reviews,
+                            provider.rating.toString(),
+                            provider.reviewCount.toString()
+                        ),
+                        style = MaterialTheme.typography.bodyLarge,
+                        fontWeight = FontWeight.Medium
+                    )
                 }
 
                 HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
 
-                Text(text = "Descripción", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.provider_description_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(text = provider.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Horario de Atención", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.provider_schedule_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Precio Aproximado", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.provider_price_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
 
                 Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = "Servicios Ofrecidos", style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                Text(text = stringResource(R.string.provider_services_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
                 Column(modifier = Modifier.padding(top = 4.dp)) {
                     provider.services.forEach { service ->
                         Text(text = "• $service", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
@@ -255,7 +277,7 @@ fun ProviderDetailScreen(
                 ) {
                     Icon(Icons.Default.Call, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
-                    Text("Llamar (${provider.phone})")
+                    Text(stringResource(R.string.provider_call, provider.phone))
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -263,7 +285,7 @@ fun ProviderDetailScreen(
                     onClick = onRequestClick,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text("Solicitar servicio")
+                    Text(stringResource(R.string.request_service))
                 }
             }
         }

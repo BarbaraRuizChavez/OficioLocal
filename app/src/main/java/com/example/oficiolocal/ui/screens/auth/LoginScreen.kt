@@ -56,7 +56,7 @@ fun LoginScreen(
         // IMAGEN COMPLETA DE FONDO
         Image(
             painter = painterResource(id = R.drawable.logo_login),
-            contentDescription = "Fondo de OficioLocal",
+            contentDescription = stringResource(R.string.login_background_description),
             modifier = Modifier.fillMaxSize(),
             contentScale = ContentScale.Crop
         )
@@ -94,10 +94,10 @@ fun LoginScreen(
                 ) {
                     // TÍTULO
                     Text(
-                        text = if (viewModel.isRegister)
-                            "¡Crea tu cuenta!"
-                        else
-                            "¡Bienvenido!",
+                        text = stringResource(
+                            if (viewModel.isRegister) R.string.login_title_register
+                            else R.string.login_title_welcome
+                        ),
                         fontSize = 27.sp,
                         fontWeight = FontWeight.Bold,
                         color = Navy
@@ -105,10 +105,10 @@ fun LoginScreen(
 
                     // DESCRIPCIÓN
                     Text(
-                        text = if (viewModel.isRegister)
-                            "Regístrate para comenzar a utilizar nuestros servicios."
-                        else
-                            "Inicia sesión y encuentra los servicios que necesitas.",
+                        text = stringResource(
+                            if (viewModel.isRegister) R.string.login_intro_register
+                            else R.string.login_intro_signin
+                        ),
                         fontSize = 15.sp,
                         color = TextGray
                     )
@@ -181,7 +181,7 @@ fun LoginScreen(
                                         Icons.Outlined.Visibility
                                     else
                                         Icons.Outlined.VisibilityOff,
-                                    contentDescription = "Mostrar u ocultar contraseña"
+                                    contentDescription = stringResource(R.string.login_password_toggle)
                                 )
                             }
                         },
@@ -200,7 +200,7 @@ fun LoginScreen(
                     // TIPO DE USUARIO (SOLO REGISTRO)
                     if (viewModel.isRegister) {
                         Text(
-                            text = "¿Cómo deseas registrarte?",
+                            text = stringResource(R.string.login_role_prompt),
                             color = Navy,
                             fontWeight = FontWeight.SemiBold,
                             fontSize = 15.sp

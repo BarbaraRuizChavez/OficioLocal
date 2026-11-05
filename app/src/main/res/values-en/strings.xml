@@ -31,8 +31,81 @@
     <string name="send">Send request</string>
     <string name="ok">OK</string>
 
-    <!-- Back / provider form -->
-    <string name="back">Back</string>
+    <!-- Request states -->
+    <string name="status_sent">Sent</string>
+    <string name="status_in_review">Under review</string>
+    <string name="status_accepted">Accepted</string>
+    <string name="status_in_progress">In progress</string>
+    <string name="status_completed">Completed</string>
+    <string name="status_rejected">Rejected</string>
+    <string name="status_cancelled">Cancelled</string>
+
+    <!-- Trades -->
+    <string name="job_plumbing">Plumbing</string>
+    <string name="job_electricity">Electrical work</string>
+    <string name="job_carpentry">Carpentry</string>
+    <string name="job_technician">Technician</string>
+
+    <!-- Common -->
+    <string name="common_ok">OK</string>
+    <string name="common_cancel">Cancel</string>
+
+    <!-- Request form -->
+    <string name="form_title">Request a service</string>
+    <string name="form_job_type">Type of work</string>
+    <string name="form_description">Describe the problem</string>
+    <string name="form_location">Location (street and neighborhood)</string>
+    <string name="form_notes">Additional information (optional)</string>
+    <string name="form_urgent">This is urgent</string>
+    <string name="form_pick_date">Choose a date</string>
+    <string name="form_pick_time">Choose a time</string>
+    <string name="form_send">Send request</string>
+    <string name="form_sent">Request %1$s sent</string>
     <string name="form_for_provider">Request for %1$s</string>
     <string name="form_any_provider">Request for any provider</string>
+    <string name="err_description">Enter a description</string>
+    <string name="err_location">Enter where the service will take place</string>
+    <string name="err_datetime">Choose a date and time</string>
+
+    <!-- Request tracking -->
+    <string name="tracking_title">My requests</string>
+    <string name="tracking_empty">You have no requests yet</string>
+    <string name="tracking_unassigned">Provider to be assigned</string>
+    <string name="tracking_id">Request %1$s</string>
+    <string name="tracking_urgent">Urgent</string>
+
+    <!-- Request details -->
+    <string name="detail_cancel">Cancel request</string>
+    <string name="detail_contact">Contact the provider</string>
+    <string name="detail_rate">Rate service</string>
+
+    <!-- Cancel request -->
+    <string name="cancel_title">Cancel this request?</string>
+    <string name="cancel_text">This action cannot be undone.</string>
+    <string name="cancel_keep">Keep request</string>
+
+    <!-- Back / provider form -->
+    <string name="back">Back</string>
+
+    <!-- Login and provider directory -->
+    <string name="login_background_description">OficioLocal background</string>
+    <string name="login_title_register">Create your account!</string>
+    <string name="login_title_welcome">Welcome!</string>
+    <string name="login_intro_register">Sign up to start using our services.</string>
+    <string name="login_intro_signin">Sign in and find the services you need.</string>
+    <string name="login_password_toggle">Show or hide password</string>
+    <string name="login_role_prompt">How would you like to sign up?</string>
+    <string name="directory_title">Service providers</string>
+    <string name="directory_search_hint">Search by name or location...</string>
+    <string name="directory_search">Search</string>
+    <string name="directory_empty">No providers found.</string>
+    <string name="provider_price_label">Approx. price: %1$s</string>
+    <string name="provider_detail_title">Provider details</string>
+    <string name="provider_not_found">Provider not found</string>
+    <string name="provider_rating_reviews">%1$s (%2$s reviews)</string>
+    <string name="provider_description_title">Description</string>
+    <string name="provider_schedule_title">Opening hours</string>
+    <string name="provider_price_title">Approximate price</string>
+    <string name="provider_services_title">Services offered</string>
+    <string name="provider_call">Call (%1$s)</string>
 </resources>

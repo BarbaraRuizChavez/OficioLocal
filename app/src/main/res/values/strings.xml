@@ -89,4 +89,26 @@
     <!-- Regresar -->
     <string name="back">Regresar</string>
 
+    <!-- Acceso y directorio -->
+    <string name="login_background_description">Fondo de OficioLocal</string>
+    <string name="login_title_register">¡Crea tu cuenta!</string>
+    <string name="login_title_welcome">¡Bienvenido!</string>
+    <string name="login_intro_register">Regístrate para comenzar a utilizar nuestros servicios.</string>
+    <string name="login_intro_signin">Inicia sesión y encuentra los servicios que necesitas.</string>
+    <string name="login_password_toggle">Mostrar u ocultar contraseña</string>
+    <string name="login_role_prompt">¿Cómo deseas registrarte?</string>
+    <string name="directory_title">Directorio de Prestadores</string>
+    <string name="directory_search_hint">Buscar por nombre o ubicación...</string>
+    <string name="directory_search">Buscar</string>
+    <string name="directory_empty">No se encontraron prestadores.</string>
+    <string name="provider_price_label">Precio aprox.: %1$s</string>
+    <string name="provider_detail_title">Detalle del Prestador</string>
+    <string name="provider_not_found">Prestador no encontrado</string>
+    <string name="provider_rating_reviews">%1$s (%2$s reseñas)</string>
+    <string name="provider_description_title">Descripción</string>
+    <string name="provider_schedule_title">Horario de atención</string>
+    <string name="provider_price_title">Precio aproximado</string>
+    <string name="provider_services_title">Servicios ofrecidos</string>
+    <string name="provider_call">Llamar (%1$s)</string>
+
 </resources>
