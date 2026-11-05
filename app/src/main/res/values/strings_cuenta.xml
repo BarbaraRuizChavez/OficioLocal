@@ -15,6 +15,10 @@
     <string name="error_email_taken">Ese correo ya está registrado</string>
 
     <string name="profile_title">Perfil y configuración</string>
+    <string name="profile_edit_name">Editar nombre</string>
+    <string name="profile_name_title">Actualizar nombre</string>
+    <string name="profile_save">Guardar</string>
+    <string name="profile_cancel">Cancelar</string>
     <string name="language">Idioma</string>
     <string name="lang_es">Español</string>
     <string name="lang_en">English</string>

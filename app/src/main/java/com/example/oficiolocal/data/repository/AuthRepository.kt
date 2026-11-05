@@ -59,6 +59,21 @@ class AuthRepository(private val userDao: UserDao) {
         return true
     }
 
+    suspend fun updateCurrentUserName(name: String): Boolean {
+        val current = _currentUser.value ?: return false
+        val cleanName = name.trim()
+        if (cleanName.isBlank()) return false
+        val user = userDao.findById(current.id) ?: return false
+        val updated = user.copy(
+            name = cleanName,
+            updatedAt = System.currentTimeMillis(),
+            pendingSync = true
+        )
+        userDao.update(updated)
+        _currentUser.value = updated.toDomain()
+        return true
+    }
+
     fun logout() {
         _currentUser.value = null
     }

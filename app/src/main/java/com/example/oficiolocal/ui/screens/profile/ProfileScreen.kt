@@ -15,14 +15,20 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
@@ -49,6 +55,9 @@ fun ProfileScreen(
     val offline by viewModel.offline.collectAsState()
     val context = LocalContext.current
     val isEnglish = LocalConfiguration.current.locales[0].language == "en"
+    val user by viewModel.user.collectAsState()
+    var showEditName by remember { mutableStateOf(false) }
+    var editedName by remember { mutableStateOf("") }
 
     Column(
         modifier = Modifier
@@ -62,17 +71,25 @@ fun ProfileScreen(
             style = MaterialTheme.typography.headlineSmall
         )
 
-        viewModel.user?.let { user ->
+        user?.let { currentUser ->
             Card(modifier = Modifier.fillMaxWidth()) {
                 Column(modifier = Modifier.padding(16.dp)) {
-                    Text(user.name, style = MaterialTheme.typography.titleMedium)
-                    Text(user.email, style = MaterialTheme.typography.bodyMedium)
+                    Text(currentUser.name, style = MaterialTheme.typography.titleMedium)
+                    Text(currentUser.email, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         text = stringResource(
-                            if (user.isProvider) R.string.role_provider else R.string.role_client
+                            if (currentUser.isProvider) R.string.role_provider else R.string.role_client
                         ),
                         style = MaterialTheme.typography.bodySmall
                     )
+                    TextButton(
+                        onClick = {
+                            editedName = currentUser.name
+                            showEditName = true
+                        }
+                    ) {
+                        Text(stringResource(R.string.profile_edit_name))
+                    }
                 }
             }
         }
@@ -118,6 +135,37 @@ fun ProfileScreen(
         ) {
             Text(stringResource(R.string.logout))
         }
+    }
+
+    if (showEditName) {
+        AlertDialog(
+            onDismissRequest = { showEditName = false },
+            title = { Text(stringResource(R.string.profile_name_title)) },
+            text = {
+                OutlinedTextField(
+                    value = editedName,
+                    onValueChange = { editedName = it },
+                    label = { Text(stringResource(R.string.auth_name)) },
+                    singleLine = true
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.updateName(editedName)
+                        showEditName = false
+                    },
+                    enabled = editedName.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.profile_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEditName = false }) {
+                    Text(stringResource(R.string.profile_cancel))
+                }
+            }
+        )
     }
 }
 
