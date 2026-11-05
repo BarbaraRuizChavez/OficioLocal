@@ -28,7 +28,7 @@ import com.example.oficiolocal.data.local.entity.UserEntity
         ProviderEntity::class, ServiceRequestEntity::class,
         NotificationEntity::class, MediaAttachmentEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -80,6 +80,16 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `reviews` ADD COLUMN `remoteId` TEXT")
+                db.execSQL("ALTER TABLE `reviews` ADD COLUMN `pendingDelete` INTEGER NOT NULL DEFAULT 0")
+                db.execSQL(
+                    "CREATE UNIQUE INDEX IF NOT EXISTS `index_reviews_remoteId` ON `reviews` (`remoteId`)"
+                )
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -90,7 +100,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "oficiolocal.db"
                 )
-                    .addMigrations(MIGRATION_2_3)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
                     // Se conserva como respaldo para saltos sin migración definida durante el desarrollo.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { instance = it }

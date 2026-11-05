@@ -84,6 +84,15 @@ fun ReviewDto.toDomain() = Review(
     date = date.orEmpty()
 )
 
+fun Review.toDto(id: String? = null) = ReviewDto(
+    id = id,
+    providerId = providerId,
+    userName = userName,
+    rating = rating,
+    comment = comment,
+    date = date
+)
+
 fun ServiceRequest.toDto() = RequestDto(
     providerId = providerId,
     providerName = providerName,

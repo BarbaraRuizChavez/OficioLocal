@@ -28,4 +28,13 @@ interface ApiService {
 
     @GET("reviews")
     suspend fun getReviews(): List<ReviewDto>
+
+    @POST("reviews")
+    suspend fun createReview(@Body body: ReviewDto): ReviewDto
+
+    @PUT("reviews/{id}")
+    suspend fun updateReview(@Path("id") id: String, @Body body: ReviewDto): ReviewDto
+
+    @DELETE("reviews/{id}")
+    suspend fun deleteReview(@Path("id") id: String)
 }

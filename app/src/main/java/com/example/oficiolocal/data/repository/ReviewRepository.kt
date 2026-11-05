@@ -37,28 +37,31 @@ class ReviewRepository(
 
     suspend fun refreshFromApi(): Boolean {
         val remoteReviews = remote.getReviews().getOrNull() ?: return false
-        val entities = remoteReviews
-            .filter { it.id.isNotBlank() && it.providerId.isNotBlank() }
-            .map { review ->
-                ReviewEntity(
-                    id = review.id,
-                    providerId = review.providerId,
-                    userName = review.userName,
-                    rating = review.rating,
-                    comment = review.comment,
-                    date = review.date,
-                    updatedAt = System.currentTimeMillis(),
-                    pendingSync = false
-                )
-            }
+        val entities = remoteReviews.mapNotNull { review ->
+            if (review.id.isBlank() || review.providerId.isBlank()) return@mapNotNull null
+            val existing = dao.getByRemoteId(review.id) ?: dao.getById(review.id)
+            if (existing?.pendingSync == true || existing?.pendingDelete == true) return@mapNotNull null
+            ReviewEntity(
+                id = existing?.id ?: "remote-${review.id}",
+                providerId = review.providerId,
+                userName = review.userName,
+                rating = review.rating,
+                comment = review.comment,
+                date = review.date,
+                updatedAt = System.currentTimeMillis(),
+                pendingSync = false,
+                remoteId = review.id
+            )
+        }
         dao.upsertAll(entities)
         return true
     }
 
     suspend fun addReview(providerId: String, userName: String, rating: Double, comment: String) {
+        val id = UUID.randomUUID().toString()
         dao.insert(
             ReviewEntity(
-                id = UUID.randomUUID().toString(),
+                id = id,
                 providerId = providerId,
                 userName = userName,
                 rating = rating,
@@ -68,11 +71,12 @@ class ReviewRepository(
                 pendingSync = true
             )
         )
+        syncReview(id)
     }
 
     suspend fun updateReview(id: String, userName: String, rating: Double, comment: String) {
         val existing = dao.getById(id) ?: return
-        if (existing.userName != userName) return
+        if (existing.userName != userName || existing.pendingDelete) return
         dao.update(
             existing.copy(
                 rating = rating,
@@ -82,10 +86,47 @@ class ReviewRepository(
                 pendingSync = true
             )
         )
+        syncReview(id)
     }
 
     suspend fun deleteReview(id: String, userName: String) {
         val existing = dao.getById(id) ?: return
-        if (existing.userName == userName) dao.delete(id)
+        if (existing.userName != userName) return
+        val remoteId = existing.remoteId
+        if (remoteId == null) {
+            dao.delete(id)
+        } else if (remote.deleteReview(remoteId).isSuccess) {
+            dao.delete(id)
+        } else {
+            dao.markDeletePending(id)
+        }
+    }
+
+    suspend fun syncPending() {
+        dao.getPendingSync().forEach { review ->
+            if (review.pendingDelete) {
+                val remoteId = review.remoteId
+                if (remoteId == null || remote.deleteReview(remoteId).isSuccess) {
+                    dao.delete(review.id)
+                }
+            } else {
+                syncReview(review.id)
+            }
+        }
+    }
+
+    private suspend fun syncReview(id: String) {
+        val review = dao.getById(id) ?: return
+        if (!review.pendingSync || review.pendingDelete) return
+        val remoteId = review.remoteId
+        val result = if (remoteId == null) {
+            remote.createReview(review.toDomain())
+        } else {
+            remote.updateReview(remoteId, review.toDomain())
+        }
+        result.onSuccess { saved ->
+            val savedRemoteId = saved.id.takeIf { it.isNotBlank() } ?: remoteId
+            if (savedRemoteId != null) dao.markSynced(id, savedRemoteId)
+        }
     }
 }

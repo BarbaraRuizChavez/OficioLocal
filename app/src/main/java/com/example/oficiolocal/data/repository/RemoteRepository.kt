@@ -22,6 +22,15 @@ class RemoteRepository(private val api: ApiService) {
     suspend fun getReviews(): Result<List<Review>> =
         runCatching { api.getReviews().map { it.toDomain() } }
 
+    suspend fun createReview(review: Review): Result<Review> =
+        runCatching { api.createReview(review.toDto()).toDomain() }
+
+    suspend fun updateReview(id: String, review: Review): Result<Review> =
+        runCatching { api.updateReview(id, review.toDto(id)).toDomain() }
+
+    suspend fun deleteReview(id: String): Result<Unit> =
+        runCatching { api.deleteReview(id) }
+
     suspend fun createRequest(request: ServiceRequest): Result<ServiceRequest> =
         runCatching { api.createRequest(request.toDto()).toDomain() }
 
