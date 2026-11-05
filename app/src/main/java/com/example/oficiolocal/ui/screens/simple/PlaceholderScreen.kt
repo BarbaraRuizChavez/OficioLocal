@@ -1,5 +1,7 @@
 package com.example.oficiolocal.ui.screens.simple
 
+import android.content.Intent
+import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,12 +18,16 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.Provider
+import com.example.oficiolocal.ui.components.FavoriteButton
+import com.example.oficiolocal.ui.components.ReviewsSection
+import kotlinx.coroutines.launch
 
 class DirectoryViewModel : ViewModel() {
     private val repository = ServiceLocator.providerRepository
@@ -158,11 +164,26 @@ fun ProviderDetailScreen(
     onRequestClick: () -> Unit
 ) {
     val provider = remember(providerId) { ServiceLocator.providerRepository.getProviderById(providerId) }
+    val favoriteFlow = remember(providerId) {
+        ServiceLocator.favoriteRepository.observeIsFavorite(providerId)
+    }
+    val isFavorite by favoriteFlow.collectAsState(initial = false)
+    val coroutineScope = rememberCoroutineScope()
+    val context = LocalContext.current
 
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text(provider?.name ?: "Detalle del Prestador") },
+                actions = {
+                    if (provider != null) {
+                        FavoriteButton(isFavorite = isFavorite) {
+                            coroutineScope.launch {
+                                ServiceLocator.favoriteRepository.toggleFavorite(providerId)
+                            }
+                        }
+                    }
+                },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Regresar")
@@ -220,7 +241,18 @@ fun ProviderDetailScreen(
 
                 Spacer(modifier = Modifier.height(24.dp))
 
-                Button(onClick = { }, modifier = Modifier.fillMaxWidth()) {
+                ReviewsSection(providerId = provider.id)
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                Button(
+                    onClick = {
+                        val phoneUri = Uri.fromParts("tel", provider.phone, null)
+                        context.startActivity(Intent(Intent.ACTION_DIAL, phoneUri))
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    enabled = provider.phone.isNotBlank()
+                ) {
                     Icon(Icons.Default.Call, contentDescription = null)
                     Spacer(modifier = Modifier.width(8.dp))
                     Text("Llamar (${provider.phone})")
