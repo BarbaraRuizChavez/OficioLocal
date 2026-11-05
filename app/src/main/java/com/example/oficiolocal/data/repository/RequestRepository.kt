@@ -16,6 +16,7 @@ import kotlinx.coroutines.launch
 interface RequestRepository {
     val requests: Flow<List<ServiceRequest>>
     suspend fun add(request: ServiceRequest)
+    suspend fun update(request: ServiceRequest)
     suspend fun cancel(id: String)
     suspend fun delete(id: String)
 }
@@ -33,6 +34,24 @@ class RoomRequestRepository(
     override suspend fun add(request: ServiceRequest) {
         dao.insert(request.toEntity())
         scope.launch { sendToApi(request.id) }
+    }
+
+    override suspend fun update(request: ServiceRequest) {
+        val current = dao.getById(request.id) ?: return
+        val updated = request.toEntity().copy(
+            remoteId = current.remoteId,
+            createdAt = current.createdAt
+        )
+        dao.update(updated)
+
+        val remoteId = current.remoteId
+        scope.launch {
+            if (remoteId == null) {
+                sendToApi(request.id)
+            } else {
+                remote.updateRequest(updated.toDomain().copy(id = remoteId))
+            }
+        }
     }
 
     override suspend fun cancel(id: String) {
@@ -82,6 +101,10 @@ class FakeRequestRepository : RequestRepository {
     override val requests: Flow<List<ServiceRequest>> = data
 
     override suspend fun add(request: ServiceRequest) = data.update { listOf(request) + it }
+
+    override suspend fun update(request: ServiceRequest) = data.update { list ->
+        list.map { if (it.id == request.id) request else it }
+    }
 
     override suspend fun cancel(id: String) = data.update { list ->
         list.map { if (it.id == id) it.copy(status = RequestStatus.CANCELLED) else it }

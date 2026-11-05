@@ -14,15 +14,20 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -70,6 +75,9 @@ fun MyRequestsScreen(
     val requests by viewModel.requests.collectAsState()
     val selected by viewModel.selected.collectAsState()
     val filters: List<RequestStatus?> = listOf(null) + RequestStatus.entries
+    var requestToEdit by remember { mutableStateOf<ServiceRequest?>(null) }
+    var editDescription by remember { mutableStateOf("") }
+    var editLocation by remember { mutableStateOf("") }
 
     Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.TopCenter) {
         Column(
@@ -110,7 +118,15 @@ fun MyRequestsScreen(
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(requests, key = { it.id }) { request ->
-                        RequestCard(request, onCancel = { viewModel.onCancel(request.id) })
+                        RequestCard(
+                            request = request,
+                            onEdit = {
+                                requestToEdit = request
+                                editDescription = request.description
+                                editLocation = request.location
+                            },
+                            onCancel = { viewModel.onCancel(request.id) }
+                        )
                     }
                 }
             }
@@ -121,10 +137,60 @@ fun MyRequestsScreen(
             }
         }
     }
+
+    requestToEdit?.let { request ->
+        AlertDialog(
+            onDismissRequest = { requestToEdit = null },
+            title = { Text(stringResource(R.string.req_edit_title)) },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedTextField(
+                        value = editDescription,
+                        onValueChange = { editDescription = it },
+                        label = { Text(stringResource(R.string.req_description)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 2
+                    )
+                    OutlinedTextField(
+                        value = editLocation,
+                        onValueChange = { editLocation = it },
+                        label = { Text(stringResource(R.string.req_location)) },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true
+                    )
+                }
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onUpdate(
+                            request.copy(
+                                description = editDescription.trim(),
+                                location = editLocation.trim()
+                            )
+                        )
+                        requestToEdit = null
+                    },
+                    enabled = editDescription.isNotBlank() && editLocation.isNotBlank()
+                ) {
+                    Text(stringResource(R.string.req_save))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { requestToEdit = null }) {
+                    Text(stringResource(R.string.req_discard))
+                }
+            }
+        )
+    }
 }
 
 @Composable
-private fun RequestCard(request: ServiceRequest, onCancel: () -> Unit) {
+private fun RequestCard(
+    request: ServiceRequest,
+    onEdit: () -> Unit,
+    onCancel: () -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
             modifier = Modifier.padding(12.dp),
@@ -163,8 +229,16 @@ private fun RequestCard(request: ServiceRequest, onCancel: () -> Unit) {
             }
 
             if (request.status == RequestStatus.PENDING) {
-                TextButton(onClick = onCancel) {
-                    Text(stringResource(R.string.req_cancel))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onEdit) {
+                        Text(stringResource(R.string.req_edit))
+                    }
+                    TextButton(onClick = onCancel) {
+                        Text(stringResource(R.string.req_cancel))
+                    }
                 }
             }
         }

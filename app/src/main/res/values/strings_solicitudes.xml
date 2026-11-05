@@ -9,4 +9,9 @@
     <string name="req_unassigned">Prestador por asignar</string>
     <string name="req_error_datetime">Elige fecha y hora</string>
     <string name="req_discard">Cancelar</string>
+    <string name="req_edit">Editar</string>
+    <string name="req_edit_title">Editar solicitud</string>
+    <string name="req_save">Guardar cambios</string>
+    <string name="req_description">Descripción</string>
+    <string name="req_location">Ubicación</string>
 </resources>

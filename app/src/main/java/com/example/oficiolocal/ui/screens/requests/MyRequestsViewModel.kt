@@ -31,4 +31,8 @@ class MyRequestsViewModel : ViewModel() {
     fun onCancel(id: String) {
         viewModelScope.launch { repository.cancel(id) }
     }
+
+    fun onUpdate(request: ServiceRequest) {
+        viewModelScope.launch { repository.update(request) }
+    }
 }

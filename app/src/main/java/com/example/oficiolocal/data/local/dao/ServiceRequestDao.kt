@@ -4,6 +4,7 @@ import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
+import androidx.room.Update
 import com.example.oficiolocal.data.local.entity.ServiceRequestEntity
 import kotlinx.coroutines.flow.Flow
 
@@ -20,6 +21,9 @@ interface ServiceRequestDao {
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: ServiceRequestEntity)
+
+    @Update
+    suspend fun update(item: ServiceRequestEntity)
 
     @Query("UPDATE service_requests SET status = :status WHERE id = :id")
     suspend fun updateStatus(id: String, status: String)

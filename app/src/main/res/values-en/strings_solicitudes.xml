@@ -9,4 +9,9 @@
     <string name="req_unassigned">Provider to be assigned</string>
     <string name="req_error_datetime">Pick a date and time</string>
     <string name="req_discard">Cancel</string>
+    <string name="req_edit">Edit</string>
+    <string name="req_edit_title">Edit request</string>
+    <string name="req_save">Save changes</string>
+    <string name="req_description">Description</string>
+    <string name="req_location">Location</string>
 </resources>
