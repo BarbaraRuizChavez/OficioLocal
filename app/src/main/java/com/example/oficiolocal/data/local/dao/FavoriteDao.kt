@@ -20,4 +20,7 @@ interface FavoriteDao {
 
     @Query("DELETE FROM favorites WHERE clientId = :clientId AND providerId = :providerId")
     suspend fun delete(clientId: String, providerId: String)
+
+    @Query("DELETE FROM favorites WHERE clientId = :clientId")
+    suspend fun deleteForClient(clientId: String)
 }

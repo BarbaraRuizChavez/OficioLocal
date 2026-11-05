@@ -19,6 +19,9 @@
     <string name="profile_name_title">Update name</string>
     <string name="profile_save">Save</string>
     <string name="profile_cancel">Cancel</string>
+    <string name="profile_delete_account">Delete account</string>
+    <string name="profile_delete_title">Delete your account?</string>
+    <string name="profile_delete_confirmation">Your local account and favorites will be deleted. This action cannot be undone.</string>
     <string name="language">Language</string>
     <string name="lang_es">Español</string>
     <string name="lang_en">English</string>

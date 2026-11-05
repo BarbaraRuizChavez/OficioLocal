@@ -26,6 +26,8 @@ class FavoriteRepository(
     suspend fun isFavorite(providerId: String): Boolean =
         dao.exists(clientId(), providerId) > 0
 
+    suspend fun removeAllForClient(clientId: String) = dao.deleteForClient(clientId)
+
     /** Aquì verifiqcamos si devuelve true si quedó como favorito y false si se quitó. */
     suspend fun toggleFavorite(providerId: String): Boolean {
         val client = clientId()

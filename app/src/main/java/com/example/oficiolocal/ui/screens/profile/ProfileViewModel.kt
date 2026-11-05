@@ -9,6 +9,7 @@ import kotlinx.coroutines.launch
 
 class ProfileViewModel : ViewModel() {
     private val authRepository = ServiceLocator.authRepository
+    private val favoriteRepository = ServiceLocator.favoriteRepository
     private val settings = ServiceLocator.settingsRepository
 
     val user: StateFlow<User?> = authRepository.currentUser
@@ -23,6 +24,16 @@ class ProfileViewModel : ViewModel() {
 
     fun updateName(name: String) {
         viewModelScope.launch { authRepository.updateCurrentUserName(name) }
+    }
+
+    fun deleteAccount(onDeleted: () -> Unit) {
+        val accountId = user.value?.id ?: return
+        viewModelScope.launch {
+            if (authRepository.deleteCurrentAccount()) {
+                runCatching { favoriteRepository.removeAllForClient(accountId) }
+                onDeleted()
+            }
+        }
     }
 
     fun logout() = authRepository.logout()

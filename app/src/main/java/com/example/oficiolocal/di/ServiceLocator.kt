@@ -18,9 +18,11 @@ import kotlinx.coroutines.launch
 
 object ServiceLocator {
     private lateinit var database: AppDatabase
+    private lateinit var applicationContext: Context
     private val appScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     fun init(context: Context) {
+        applicationContext = context.applicationContext
         database = AppDatabase.getInstance(context)
         appScope.launch {
             authRepository.seedIfEmpty()
@@ -33,7 +35,7 @@ object ServiceLocator {
 
     private val remoteRepository by lazy { RemoteRepository(ApiClient.service) }
 
-    val authRepository by lazy { AuthRepository(database.userDao()) }
+    val authRepository by lazy { AuthRepository(database.userDao(), applicationContext) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao(), authRepository) }
     val providerRepository by lazy { ProviderRepository(database.providerDao(), remoteRepository) }
     val reviewRepository by lazy { ReviewRepository(database.reviewDao()) }

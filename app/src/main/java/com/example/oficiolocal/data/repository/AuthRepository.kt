@@ -1,5 +1,6 @@
 package com.example.oficiolocal.data.repository
 
+import android.content.Context
 import com.example.oficiolocal.data.local.dao.UserDao
 import com.example.oficiolocal.data.local.entity.UserEntity
 import com.example.oficiolocal.data.local.entity.toDomain
@@ -13,7 +14,11 @@ import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
 /** Usuarios guardados en Room. La sesión vive en memoria. En la siguiente etapa se suma la API con JWT. */
-class AuthRepository(private val userDao: UserDao) {
+class AuthRepository(
+    private val userDao: UserDao,
+    context: Context
+) {
+    private val seedPreferences = context.getSharedPreferences("oficiolocal_auth", Context.MODE_PRIVATE)
 
     private val _currentUser = MutableStateFlow<User?>(null)
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
@@ -27,11 +32,13 @@ class AuthRepository(private val userDao: UserDao) {
 
     /** Cuentas de prueba la primera vez que se abre la app. */
     suspend fun seedIfEmpty() = seedMutex.withLock {
+        if (seedPreferences.getBoolean(KEY_DEMO_USERS_SEEDED, false)) return@withLock
         if (userDao.count() == 0) {
             val now = System.currentTimeMillis()
             userDao.insert(UserEntity("u1", "Ana Torres", "cliente@correo.com", hash("123456"), false, now, false))
             userDao.insert(UserEntity("u2", "Juan Pérez", "prestador@correo.com", hash("123456"), true, now, false))
         }
+        seedPreferences.edit().putBoolean(KEY_DEMO_USERS_SEEDED, true).apply()
     }
 
     suspend fun login(email: String, password: String): Boolean {
@@ -74,6 +81,14 @@ class AuthRepository(private val userDao: UserDao) {
         return true
     }
 
+    suspend fun deleteCurrentAccount(): Boolean {
+        val current = _currentUser.value ?: return false
+        val deletedRows = userDao.deleteById(current.id)
+        if (deletedRows == 0) return false
+        logout()
+        return true
+    }
+
     fun logout() {
         _currentUser.value = null
     }
@@ -81,4 +96,8 @@ class AuthRepository(private val userDao: UserDao) {
     fun getCurrentUser(): User? = _currentUser.value
 
     fun isLoggedIn(): Boolean = _currentUser.value != null
+
+    private companion object {
+        const val KEY_DEMO_USERS_SEEDED = "demo_users_seeded"
+    }
 }

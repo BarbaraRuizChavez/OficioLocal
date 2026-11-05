@@ -18,6 +18,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
@@ -58,6 +59,7 @@ fun ProfileScreen(
     val user by viewModel.user.collectAsState()
     var showEditName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf("") }
+    var showDeleteAccount by remember { mutableStateOf(false) }
 
     Column(
         modifier = Modifier
@@ -135,6 +137,13 @@ fun ProfileScreen(
         ) {
             Text(stringResource(R.string.logout))
         }
+
+        OutlinedButton(
+            onClick = { showDeleteAccount = true },
+            modifier = Modifier.fillMaxWidth()
+        ) {
+            Text(stringResource(R.string.profile_delete_account))
+        }
     }
 
     if (showEditName) {
@@ -162,6 +171,29 @@ fun ProfileScreen(
             },
             dismissButton = {
                 TextButton(onClick = { showEditName = false }) {
+                    Text(stringResource(R.string.profile_cancel))
+                }
+            }
+        )
+    }
+
+    if (showDeleteAccount) {
+        AlertDialog(
+            onDismissRequest = { showDeleteAccount = false },
+            title = { Text(stringResource(R.string.profile_delete_title)) },
+            text = { Text(stringResource(R.string.profile_delete_confirmation)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.deleteAccount(onLogout)
+                        showDeleteAccount = false
+                    }
+                ) {
+                    Text(stringResource(R.string.profile_delete_account))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteAccount = false }) {
                     Text(stringResource(R.string.profile_cancel))
                 }
             }
