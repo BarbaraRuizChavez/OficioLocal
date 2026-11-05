@@ -25,4 +25,7 @@ interface ApiService {
 
     @DELETE("requests/{id}")
     suspend fun deleteRequest(@Path("id") id: String)
+
+    @GET("reviews")
+    suspend fun getReviews(): List<ReviewDto>
 }

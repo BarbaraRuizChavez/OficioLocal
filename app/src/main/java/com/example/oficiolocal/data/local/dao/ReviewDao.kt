@@ -2,6 +2,7 @@ package com.example.oficiolocal.data.local.dao
 
 import androidx.room.Dao
 import androidx.room.Insert
+import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Update
 import com.example.oficiolocal.data.local.entity.ReviewEntity
@@ -20,6 +21,9 @@ interface ReviewDao {
 
     @Insert
     suspend fun insert(review: ReviewEntity)
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsertAll(reviews: List<ReviewEntity>)
 
     @Update
     suspend fun update(review: ReviewEntity)

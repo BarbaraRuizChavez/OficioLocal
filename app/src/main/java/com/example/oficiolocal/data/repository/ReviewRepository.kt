@@ -13,8 +13,11 @@ import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 
-/** Reseñas guardadas en Room. En la siguiente etapa se sincronizan con la API. */
-class ReviewRepository(private val dao: ReviewDao) {
+/** Room conserva las reseñas y la API aporta las reseñas compartidas del servidor. */
+class ReviewRepository(
+    private val dao: ReviewDao,
+    private val remote: RemoteRepository
+) {
 
     private val seedMutex = Mutex()
 
@@ -31,6 +34,26 @@ class ReviewRepository(private val dao: ReviewDao) {
 
     fun observeByProvider(providerId: String): Flow<List<Review>> =
         dao.observeByProvider(providerId).map { list -> list.map { it.toDomain() } }
+
+    suspend fun refreshFromApi(): Boolean {
+        val remoteReviews = remote.getReviews().getOrNull() ?: return false
+        val entities = remoteReviews
+            .filter { it.id.isNotBlank() && it.providerId.isNotBlank() }
+            .map { review ->
+                ReviewEntity(
+                    id = review.id,
+                    providerId = review.providerId,
+                    userName = review.userName,
+                    rating = review.rating,
+                    comment = review.comment,
+                    date = review.date,
+                    updatedAt = System.currentTimeMillis(),
+                    pendingSync = false
+                )
+            }
+        dao.upsertAll(entities)
+        return true
+    }
 
     suspend fun addReview(providerId: String, userName: String, rating: Double, comment: String) {
         dao.insert(

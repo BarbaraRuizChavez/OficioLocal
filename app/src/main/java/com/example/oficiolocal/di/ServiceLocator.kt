@@ -31,6 +31,7 @@ object ServiceLocator {
             runCatching { providerRepository.refreshFromApi() }
             runCatching { roomRequestRepository.syncPending() }
             runCatching { roomRequestRepository.refreshFromApi() }
+            runCatching { reviewRepository.refreshFromApi() }
         }
     }
 
@@ -39,7 +40,7 @@ object ServiceLocator {
     val authRepository by lazy { AuthRepository(database.userDao(), applicationContext) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao(), authRepository) }
     val providerRepository by lazy { ProviderRepository(database.providerDao(), remoteRepository) }
-    val reviewRepository by lazy { ReviewRepository(database.reviewDao()) }
+    val reviewRepository by lazy { ReviewRepository(database.reviewDao(), remoteRepository) }
     val settingsRepository by lazy { SettingsRepository() }
 
     private val roomRequestRepository by lazy {

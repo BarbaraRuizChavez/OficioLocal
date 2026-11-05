@@ -2,6 +2,7 @@ package com.example.oficiolocal.data.remote
 
 import com.example.oficiolocal.domain.JobType
 import com.example.oficiolocal.domain.Provider
+import com.example.oficiolocal.domain.Review
 import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
 import com.example.oficiolocal.domain.Urgency
@@ -36,6 +37,15 @@ data class RequestDto(
     val minute: Int? = null
 )
 
+data class ReviewDto(
+    val id: String? = null,
+    val providerId: String? = null,
+    val userName: String? = null,
+    val rating: Double? = null,
+    val comment: String? = null,
+    val date: String? = null
+)
+
 fun ProviderDto.toDomain() = Provider(
     id = id.orEmpty(),
     name = name.orEmpty(),
@@ -63,6 +73,15 @@ fun RequestDto.toDomain() = ServiceRequest(
     providerId = providerId,
     jobType = jobType?.let { runCatching { JobType.valueOf(it) }.getOrNull() },
     location = location.orEmpty()
+)
+
+fun ReviewDto.toDomain() = Review(
+    id = id.orEmpty(),
+    providerId = providerId.orEmpty(),
+    userName = userName.orEmpty(),
+    rating = rating ?: 0.0,
+    comment = comment.orEmpty(),
+    date = date.orEmpty()
 )
 
 fun ServiceRequest.toDto() = RequestDto(
