@@ -1,7 +1,7 @@
 package com.example.oficiolocal.ui.components
 
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
@@ -17,10 +17,13 @@ class ReviewsViewModel(private val providerId: String) : ViewModel() {
     var reviews by mutableStateOf<List<Review>>(emptyList())
         private set
 
-    var rating by mutableIntStateOf(0)
+    var rating by mutableDoubleStateOf(0.0)
         private set
 
     var comment by mutableStateOf("")
+        private set
+
+    var editingReviewId by mutableStateOf<String?>(null)
         private set
 
     init {
@@ -30,18 +33,44 @@ class ReviewsViewModel(private val providerId: String) : ViewModel() {
         }
     }
 
-    fun onRating(value: Int) { rating = value }
+    fun onRating(value: Int) { rating = value.toDouble() }
     fun onComment(value: String) { comment = value }
 
-    fun submit() {
-        if (rating == 0) return
-        val author = authRepository.getCurrentUser()?.name ?: "Usuario"
-        val value = rating.toDouble()
-        val text = comment.trim()
-        rating = 0
+    fun canManage(review: Review): Boolean =
+        authRepository.getCurrentUser()?.name == review.userName
+
+    fun startEditing(review: Review) {
+        if (!canManage(review)) return
+        editingReviewId = review.id
+        rating = review.rating
+        comment = review.comment
+    }
+
+    fun cancelEditing() {
+        editingReviewId = null
+        rating = 0.0
         comment = ""
+    }
+
+    fun submit() {
+        if (rating <= 0.0) return
+        val author = authRepository.getCurrentUser()?.name ?: return
+        val value = rating
+        val text = comment.trim()
+        val reviewId = editingReviewId
         viewModelScope.launch {
-            reviewRepository.addReview(providerId, author, value, text)
+            if (reviewId == null) {
+                reviewRepository.addReview(providerId, author, value, text)
+            } else {
+                reviewRepository.updateReview(reviewId, author, value, text)
+            }
+            cancelEditing()
         }
+    }
+
+    fun delete(review: Review) {
+        val author = authRepository.getCurrentUser()?.name ?: return
+        if (!canManage(review)) return
+        viewModelScope.launch { reviewRepository.deleteReview(review.id, author) }
     }
 }

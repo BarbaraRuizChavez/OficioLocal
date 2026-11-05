@@ -15,6 +15,9 @@ interface ReviewDao {
     @Query("SELECT COUNT(*) FROM reviews")
     suspend fun count(): Int
 
+    @Query("SELECT * FROM reviews WHERE id = :id LIMIT 1")
+    suspend fun getById(id: String): ReviewEntity?
+
     @Insert
     suspend fun insert(review: ReviewEntity)
 

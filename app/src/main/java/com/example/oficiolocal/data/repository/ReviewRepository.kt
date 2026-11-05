@@ -47,5 +47,22 @@ class ReviewRepository(private val dao: ReviewDao) {
         )
     }
 
-    suspend fun deleteReview(id: String) = dao.delete(id)
+    suspend fun updateReview(id: String, userName: String, rating: Double, comment: String) {
+        val existing = dao.getById(id) ?: return
+        if (existing.userName != userName) return
+        dao.update(
+            existing.copy(
+                rating = rating,
+                comment = comment.trim(),
+                date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
+                updatedAt = System.currentTimeMillis(),
+                pendingSync = true
+            )
+        )
+    }
+
+    suspend fun deleteReview(id: String, userName: String) {
+        val existing = dao.getById(id) ?: return
+        if (existing.userName == userName) dao.delete(id)
+    }
 }

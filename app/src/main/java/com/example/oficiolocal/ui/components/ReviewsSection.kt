@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material.icons.filled.StarBorder
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.Icon
@@ -15,7 +16,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
@@ -37,6 +43,8 @@ fun ReviewsSection(
         ReviewsViewModel(providerId)
     }
 ) {
+    var reviewToDelete by remember { mutableStateOf<Review?>(null) }
+
     Column(
         modifier = modifier.fillMaxWidth(),
         verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -57,7 +65,14 @@ fun ReviewsSection(
                 text = stringResource(R.string.reviews_avg, average),
                 style = MaterialTheme.typography.bodyMedium
             )
-            viewModel.reviews.forEach { review -> ReviewCard(review) }
+            viewModel.reviews.forEach { review ->
+                ReviewCard(
+                    review = review,
+                    canManage = viewModel.canManage(review),
+                    onEdit = { viewModel.startEditing(review) },
+                    onDelete = { reviewToDelete = review }
+                )
+            }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -83,13 +98,52 @@ fun ReviewsSection(
             onClick = viewModel::submit,
             enabled = viewModel.rating > 0
         ) {
-            Text(stringResource(R.string.review_send))
+            Text(
+                stringResource(
+                    if (viewModel.editingReviewId == null) R.string.review_send
+                    else R.string.review_save_changes
+                )
+            )
         }
+
+        if (viewModel.editingReviewId != null) {
+            TextButton(onClick = viewModel::cancelEditing) {
+                Text(stringResource(R.string.review_cancel_edit))
+            }
+        }
+    }
+
+    reviewToDelete?.let { review ->
+        AlertDialog(
+            onDismissRequest = { reviewToDelete = null },
+            title = { Text(stringResource(R.string.review_delete_title)) },
+            text = { Text(stringResource(R.string.review_delete_confirmation)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.delete(review)
+                        reviewToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.review_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { reviewToDelete = null }) {
+                    Text(stringResource(R.string.review_cancel_edit))
+                }
+            }
+        )
     }
 }
 
 @Composable
-private fun ReviewCard(review: Review) {
+private fun ReviewCard(
+    review: Review,
+    canManage: Boolean,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
+) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(review.userName, style = MaterialTheme.typography.titleMedium)
@@ -108,6 +162,19 @@ private fun ReviewCard(review: Review) {
                 style = MaterialTheme.typography.bodySmall,
                 modifier = Modifier.padding(top = 8.dp)
             )
+            if (canManage) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.End
+                ) {
+                    TextButton(onClick = onEdit) {
+                        Text(stringResource(R.string.review_edit))
+                    }
+                    TextButton(onClick = onDelete) {
+                        Text(stringResource(R.string.review_delete))
+                    }
+                }
+            }
         }
     }
 }
