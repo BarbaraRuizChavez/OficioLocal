@@ -14,4 +14,7 @@
     <string name="req_save">Guardar cambios</string>
     <string name="req_description">Descripción</string>
     <string name="req_location">Ubicación</string>
+    <string name="req_delete">Eliminar</string>
+    <string name="req_delete_title">Eliminar solicitud</string>
+    <string name="req_delete_confirmation">¿Quieres eliminar esta solicitud? Esta acción no se puede deshacer.</string>
 </resources>

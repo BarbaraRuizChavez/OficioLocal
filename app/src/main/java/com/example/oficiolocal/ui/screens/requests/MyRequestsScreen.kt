@@ -76,6 +76,7 @@ fun MyRequestsScreen(
     val selected by viewModel.selected.collectAsState()
     val filters: List<RequestStatus?> = listOf(null) + RequestStatus.entries
     var requestToEdit by remember { mutableStateOf<ServiceRequest?>(null) }
+    var requestToDelete by remember { mutableStateOf<ServiceRequest?>(null) }
     var editDescription by remember { mutableStateOf("") }
     var editLocation by remember { mutableStateOf("") }
 
@@ -125,7 +126,8 @@ fun MyRequestsScreen(
                                 editDescription = request.description
                                 editLocation = request.location
                             },
-                            onCancel = { viewModel.onCancel(request.id) }
+                            onCancel = { viewModel.onCancel(request.id) },
+                            onDelete = { requestToDelete = request }
                         )
                     }
                 }
@@ -183,13 +185,37 @@ fun MyRequestsScreen(
             }
         )
     }
+
+    requestToDelete?.let { request ->
+        AlertDialog(
+            onDismissRequest = { requestToDelete = null },
+            title = { Text(stringResource(R.string.req_delete_title)) },
+            text = { Text(stringResource(R.string.req_delete_confirmation)) },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        viewModel.onDelete(request.id)
+                        requestToDelete = null
+                    }
+                ) {
+                    Text(stringResource(R.string.req_delete))
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { requestToDelete = null }) {
+                    Text(stringResource(R.string.req_discard))
+                }
+            }
+        )
+    }
 }
 
 @Composable
 private fun RequestCard(
     request: ServiceRequest,
     onEdit: () -> Unit,
-    onCancel: () -> Unit
+    onCancel: () -> Unit,
+    onDelete: () -> Unit
 ) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -239,6 +265,15 @@ private fun RequestCard(
                     TextButton(onClick = onCancel) {
                         Text(stringResource(R.string.req_cancel))
                     }
+                }
+            }
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.End
+            ) {
+                TextButton(onClick = onDelete) {
+                    Text(stringResource(R.string.req_delete))
                 }
             }
         }

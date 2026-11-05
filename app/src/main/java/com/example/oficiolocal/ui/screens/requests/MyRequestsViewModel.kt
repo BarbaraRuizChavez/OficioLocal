@@ -35,4 +35,8 @@ class MyRequestsViewModel : ViewModel() {
     fun onUpdate(request: ServiceRequest) {
         viewModelScope.launch { repository.update(request) }
     }
+
+    fun onDelete(id: String) {
+        viewModelScope.launch { repository.delete(id) }
+    }
 }
