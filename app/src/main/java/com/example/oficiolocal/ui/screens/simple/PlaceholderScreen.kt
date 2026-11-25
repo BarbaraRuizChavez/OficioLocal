@@ -1,7 +1,10 @@
 package com.example.oficiolocal.ui.screens.simple
 
+import android.content.ActivityNotFoundException
+import android.content.Context
 import android.content.Intent
 import android.net.Uri
+import android.widget.Toast
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
@@ -13,7 +16,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
@@ -33,6 +38,8 @@ import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.components.ReviewsSection
+import com.example.oficiolocal.ui.components.isAvailableToday
+import com.example.oficiolocal.ui.components.maxPriceOf
 import kotlinx.coroutines.launch
 
 class DirectoryViewModel : ViewModel() {
@@ -44,10 +51,16 @@ class DirectoryViewModel : ViewModel() {
     var selectedCategory by mutableStateOf<String?>(null)
         private set
 
+    var onlyToday by mutableStateOf(false)
+        private set
+
+    var maxPrice by mutableStateOf<Int?>(null)
+        private set
+
     var providersList by mutableStateOf<List<Provider>>(emptyList())
         private set
 
-    val categories = listOf("Plomería", "Electricidad", "Carpintería")
+    val categories = listOf("Plomería", "Electricidad", "Carpintería", "Técnico")
 
     init {
         fetchProviders()
@@ -63,13 +76,25 @@ class DirectoryViewModel : ViewModel() {
         fetchProviders()
     }
 
+    fun onToggleToday() {
+        onlyToday = !onlyToday
+        fetchProviders()
+    }
+
+    fun onMaxPriceSelected(price: Int) {
+        maxPrice = if (maxPrice == price) null else price
+        fetchProviders()
+    }
+
     private fun fetchProviders() {
         providersList = repository.getProviders(searchQuery, selectedCategory)
+            .filter { !onlyToday || isAvailableToday(it.schedule) }
+            .filter { limit -> maxPrice?.let { max -> (maxPriceOf(limit.priceRange) ?: 0) <= max } ?: true }
     }
 }
 
 @Composable
-private fun localizedTradeName(category: String): String = when (category.trim().lowercase()) {
+internal fun localizedTradeName(category: String): String = when (category.trim().lowercase()) {
     "plomería", "plomeria", "plumbing" -> stringResource(R.string.trade_plumbing)
     "electricidad", "electrical", "electrician" -> stringResource(R.string.trade_electricity)
     "carpintería", "carpinteria", "carpentry" -> stringResource(R.string.trade_carpentry)
@@ -137,7 +162,12 @@ private fun DirectoryList(
                 onValueChange = { viewModel.onSearchQueryChange(it) },
                 modifier = Modifier.fillMaxWidth(),
                 placeholder = { Text(stringResource(R.string.directory_search_hint)) },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = stringResource(R.string.directory_search)) },
+                leadingIcon = {
+                    Icon(
+                        Icons.Default.Search,
+                        contentDescription = stringResource(R.string.directory_search)
+                    )
+                },
                 singleLine = true
             )
 
@@ -149,6 +179,32 @@ private fun DirectoryList(
                         selected = viewModel.selectedCategory == category,
                         onClick = { viewModel.onCategorySelected(category) },
                         label = { Text(localizedTradeName(category)) }
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                item {
+                    FilterChip(
+                        selected = viewModel.onlyToday,
+                        onClick = { viewModel.onToggleToday() },
+                        label = { Text(stringResource(R.string.filter_today)) }
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = viewModel.maxPrice == 500,
+                        onClick = { viewModel.onMaxPriceSelected(500) },
+                        label = { Text(stringResource(R.string.filter_price_500)) }
+                    )
+                }
+                item {
+                    FilterChip(
+                        selected = viewModel.maxPrice == 1000,
+                        onClick = { viewModel.onMaxPriceSelected(1000) },
+                        label = { Text(stringResource(R.string.filter_price_1000)) }
                     )
                 }
             }
@@ -196,15 +252,14 @@ private fun DirectoryList(
                                 }
                                 Spacer(modifier = Modifier.height(4.dp))
                                 Text(
-                                    text = "${localizedTradeName(provider.category)} • ${provider.location}",
+                                    text = "${localizedTradeName(provider.category)} · ${provider.location}",
                                     style = MaterialTheme.typography.bodyMedium,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
-                                Spacer(modifier = Modifier.height(8.dp))
+                                Spacer(modifier = Modifier.height(4.dp))
                                 Text(
                                     text = stringResource(R.string.provider_price_label, provider.priceRange),
-                                    style = MaterialTheme.typography.bodySmall,
-                                    fontWeight = FontWeight.Medium
+                                    style = MaterialTheme.typography.bodySmall
                                 )
                             }
                         }
@@ -214,7 +269,6 @@ private fun DirectoryList(
         }
     }
 }
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderDetailScreen(
@@ -222,39 +276,45 @@ fun ProviderDetailScreen(
     onBackClick: () -> Unit,
     onRequestClick: () -> Unit
 ) {
-    val provider = remember(providerId) { ServiceLocator.providerRepository.getProviderById(providerId) }
-    val favoriteFlow = remember(providerId) {
-        ServiceLocator.favoriteRepository.observeIsFavorite(providerId)
-    }
-    val isFavorite by favoriteFlow.collectAsState(initial = false)
-    val coroutineScope = rememberCoroutineScope()
     val context = LocalContext.current
-
+    val noApp = stringResource(R.string.provider_no_app)
+    val scope = rememberCoroutineScope()
+    val isFavorite by ServiceLocator.favoriteRepository
+        .observeIsFavorite(providerId)
+        .collectAsState(initial = false)
+    val provider = remember(providerId) {
+        ServiceLocator.providerRepository.getProviderById(providerId)
+    }
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
-                    Text(provider?.name ?: stringResource(R.string.provider_detail_title))
+                title = { Text(provider?.name ?: stringResource(R.string.provider_detail_title)) },
+                navigationIcon = {
+                    IconButton(onClick = onBackClick) {
+                        Icon(
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = stringResource(R.string.back)
+                        )
+                    }
                 },
                 actions = {
                     if (provider != null) {
-                        FavoriteButton(isFavorite = isFavorite) {
-                            coroutineScope.launch {
-                                ServiceLocator.favoriteRepository.toggleFavorite(providerId)
-                            }
-                        }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.back))
+                        FavoriteButton(
+                            isFavorite = isFavorite,
+                            onClick = { scope.launch { ServiceLocator.favoriteRepository.toggleFavorite(provider.id) } }
+                        )
                     }
                 }
             )
         }
     ) { paddingValues ->
         if (provider == null) {
-            Box(modifier = Modifier.fillMaxSize().padding(paddingValues), contentAlignment = Alignment.Center) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(paddingValues),
+                contentAlignment = Alignment.Center
+            ) {
                 Text(stringResource(R.string.provider_not_found))
             }
         } else {
@@ -268,47 +328,65 @@ fun ProviderDetailScreen(
                     modifier = Modifier
                         .widthIn(max = 640.dp)
                         .verticalScroll(rememberScrollState())
-                        .padding(16.dp)
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    Text(text = provider.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                    Text(text = "${localizedTradeName(provider.category)} • ${provider.location}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Text(
+                        text = provider.name,
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = "${localizedTradeName(provider.category)} · ${provider.location}",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
                     Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Icon(
+                            imageVector = Icons.Default.Star,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.primary
+                        )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(
-                                R.string.provider_rating_reviews,
-                                provider.rating.toString(),
-                                provider.reviewCount.toString()
-                            ),
-                            style = MaterialTheme.typography.bodyLarge,
-                            fontWeight = FontWeight.Medium
+                            text = stringResource(R.string.provider_rating_reviews, provider.rating, provider.reviewCount),
+                            style = MaterialTheme.typography.bodyLarge
                         )
                     }
-                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-                    Text(text = stringResource(R.string.provider_description_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(text = provider.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = stringResource(R.string.provider_schedule_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = stringResource(R.string.provider_price_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(text = stringResource(R.string.provider_services_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                    Column(modifier = Modifier.padding(top = 4.dp)) {
+                    HorizontalDivider()
+                    Text(
+                        text = stringResource(R.string.provider_description_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(text = provider.description, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = stringResource(R.string.provider_schedule_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium)
+                    Text(
+                        text = stringResource(R.string.provider_price_title),
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium)
+                    if (provider.services.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.provider_services_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
                         provider.services.forEach { service ->
-                            Text(text = "• $service", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                            Text(text = "• $service", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
-                    Spacer(modifier = Modifier.height(24.dp))
-                    ReviewsSection(providerId = provider.id)
-                    Spacer(modifier = Modifier.height(24.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            val phoneUri = Uri.fromParts("tel", provider.phone, null)
-                            context.startActivity(Intent(Intent.ACTION_DIAL, phoneUri))
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${provider.phone}"))
+                            openExternal(context, intent, noApp)
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = provider.phone.isNotBlank()
@@ -317,15 +395,49 @@ fun ProviderDetailScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.provider_call, provider.phone))
                     }
-                    Spacer(modifier = Modifier.height(12.dp))
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            val query = Uri.encode("${provider.name}, ${provider.location}, Uriangato, Guanajuato")
+                            openExternal(context, Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$query")), noApp)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Icon(Icons.Default.Place, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.provider_map))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
+                    OutlinedButton(
+                        onClick = {
+                            val number = "52" + provider.phone.filter { it.isDigit() }
+                            openExternal(context, Intent(Intent.ACTION_VIEW, Uri.parse("wa.me")), noApp)
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = provider.phone.isNotBlank()
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.provider_whatsapp))
+                    }
+                    Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = onRequestClick,
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text(stringResource(R.string.request_service))
                     }
+                    HorizontalDivider()
+                    ReviewsSection(providerId = provider.id)
                 }
             }
         }
+    }
+}
+private fun openExternal(context: Context, intent: Intent, errorMessage: String) {
+    try {
+        context.startActivity(intent)
+    } catch (_: ActivityNotFoundException) {
+        Toast.makeText(context, errorMessage, Toast.LENGTH_SHORT).show()
     }
 }

@@ -1,0 +1,11 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="notif_channel_name">Solicitudes</string>
+    <string name="notif_title">Notificaciones</string>
+    <string name="notif_empty">No tienes notificaciones</string>
+    <string name="notif_clear">Borrar todo</string>
+    <string name="notif_created_title">Solicitud enviada</string>
+    <string name="notif_created_msg">Tu solicitud se creó correctamente.</string>
+    <string name="notif_status_title">Tu solicitud cambió</string>
+    <string name="notif_status_msg">Nuevo estado: %1$s</string>
+</resources>
