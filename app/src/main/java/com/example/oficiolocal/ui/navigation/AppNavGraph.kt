@@ -21,12 +21,12 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -40,10 +40,10 @@ import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.ui.screens.auth.LoginScreen
 import com.example.oficiolocal.ui.screens.favorites.FavoritesScreen
 import com.example.oficiolocal.ui.screens.profile.ProfileScreen
-import com.example.oficiolocal.ui.screens.request.NewRequestScreen
 import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
+import com.example.oficiolocal.ui.screens.request.NewRequestScreen
 
 private data class NavItem(
     @StringRes val label: Int,
@@ -59,16 +59,13 @@ private val navItems = listOf(
 )
 
 @Composable
-fun AppNavGraph(
-    navController: NavHostController,
-    widthSizeClass: WindowWidthSizeClass
-) {
+fun AppNavGraph(navController: NavHostController) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
     val showMenu = navItems.any { it.route == currentRoute }
-    // teléfono = barra inferior; tableta = riel lateral
-    val isWide = widthSizeClass != WindowWidthSizeClass.Compact
+    // Pantallas anchas (tableta): riel lateral. Pantallas compactas: barra inferior.
+    val isWide = LocalConfiguration.current.screenWidthDp >= 600
     val offline by ServiceLocator.settingsRepository.offline.collectAsState()
 
     fun goTo(route: String) {
@@ -147,12 +144,8 @@ fun AppNavGraph(
 
                     composable(Routes.HOME) {
                         ProviderListScreen(
-                            widthSizeClass = widthSizeClass,
                             onProviderClick = { providerId ->
                                 navController.navigate(Routes.buildProviderDetailRoute(providerId))
-                            },
-                            onRequestClick = { providerId ->
-                                navController.navigate(Routes.buildNewRequestRoute(providerId))
                             }
                         )
                     }
