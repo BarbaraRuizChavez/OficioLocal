@@ -10,16 +10,23 @@ import androidx.navigation.compose.rememberNavController
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.ui.navigation.AppNavGraph
 import com.example.oficiolocal.ui.theme.OficioLocalTheme
+import androidx.compose.material3.windowsizeclass.ExperimentalMaterial3WindowSizeClassApi
+import androidx.compose.material3.windowsizeclass.calculateWindowSizeClass
 
+@OptIn(ExperimentalMaterial3WindowSizeClassApi::class)
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         setContent {
             val darkMode by ServiceLocator.settingsRepository.darkMode.collectAsState()
+            val windowSize = calculateWindowSizeClass(this)
             OficioLocalTheme(darkTheme = darkMode) {
                 val navController = rememberNavController()
-                AppNavGraph(navController = navController)
+                AppNavGraph(
+                    navController = navController,
+                    widthSizeClass = windowSize.widthSizeClass
+                )
             }
         }
     }
