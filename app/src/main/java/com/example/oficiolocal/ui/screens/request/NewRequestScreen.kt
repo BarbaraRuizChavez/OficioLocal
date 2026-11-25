@@ -1,12 +1,15 @@
 package com.example.oficiolocal.ui.screens.request
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.toggleable
@@ -83,119 +86,126 @@ fun NewRequestScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Column(
+        Box(
             modifier = Modifier
-                .padding(padding)
-                .verticalScroll(rememberScrollState())
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
+                .padding(padding),
+            contentAlignment = Alignment.TopCenter
         ) {
-            Text(
-                text = state.providerName
-                    ?.let { stringResource(R.string.form_for_provider, it) }
-                    ?: stringResource(R.string.form_any_provider),
-                style = MaterialTheme.typography.titleMedium
-            )
-
-            // Tipo de trabajo: radios
-            Text(stringResource(R.string.form_job_type), style = MaterialTheme.typography.labelLarge)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                JobType.entries.forEach { job ->
-                    RadioOption(
-                        label = stringResource(job.label),
-                        selected = state.jobType == job,
-                        onClick = { viewModel.onJobTypeChange(job) }
-                    )
-                }
-            }
-
-            // Descripción
-            OutlinedTextField(
-                value = state.description,
-                onValueChange = viewModel::onDescriptionChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.form_description)) },
-                minLines = 3,
-                isError = state.descriptionError,
-                supportingText = {
-                    if (state.descriptionError) Text(stringResource(R.string.err_description))
-                }
-            )
-
-            // Ubicación
-            OutlinedTextField(
-                value = state.location,
-                onValueChange = viewModel::onLocationChange,
-                modifier = Modifier.fillMaxWidth(),
-                label = { Text(stringResource(R.string.form_location)) },
-                singleLine = true,
-                isError = state.locationError,
-                supportingText = {
-                    if (state.locationError) Text(stringResource(R.string.err_location))
-                }
-            )
-
-            // Urgencia: radios
-            Text(stringResource(R.string.urgency), style = MaterialTheme.typography.labelLarge)
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
-                Urgency.entries.forEach { urgency ->
-                    RadioOption(
-                        label = stringResource( // CAMBIO
-                            when (urgency) {
-                                Urgency.LOW -> R.string.urgency_low
-                                Urgency.MEDIUM -> R.string.urgency_medium
-                                Urgency.HIGH -> R.string.urgency_high
-                            }
-                        ),
-                        selected = state.urgency == urgency,
-                        onClick = { viewModel.onUrgencyChange(urgency) }
-                    )
-                }
-            }
-
-            // Requiere materiales: check
-            Row(
-                modifier = Modifier.toggleable(
-                    value = state.needsMaterials,
-                    role = Role.Checkbox,
-                    onValueChange = viewModel::onNeedsMaterialsChange
-                ),
-                verticalAlignment = Alignment.CenterVertically
+            Column(
+                modifier = Modifier
+                    .widthIn(max = 640.dp)
+                    .verticalScroll(rememberScrollState())
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Checkbox(checked = state.needsMaterials, onCheckedChange = null)
                 Text(
-                    text = stringResource(R.string.needs_materials),
-                    modifier = Modifier.padding(start = 8.dp)
+                    text = state.providerName
+                        ?.let { stringResource(R.string.form_for_provider, it) }
+                        ?: stringResource(R.string.form_any_provider),
+                    style = MaterialTheme.typography.titleMedium
                 )
-            }
 
-            // Fecha y hora
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                OutlinedButton(onClick = { showDatePicker = true }) {
+                // Tipo de trabajo: radios
+                Text(stringResource(R.string.form_job_type), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    JobType.entries.forEach { job ->
+                        RadioOption(
+                            label = stringResource(job.label),
+                            selected = state.jobType == job,
+                            onClick = { viewModel.onJobTypeChange(job) }
+                        )
+                    }
+                }
+
+                // Descripción
+                OutlinedTextField(
+                    value = state.description,
+                    onValueChange = viewModel::onDescriptionChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.form_description)) },
+                    minLines = 3,
+                    isError = state.descriptionError,
+                    supportingText = {
+                        if (state.descriptionError) Text(stringResource(R.string.err_description))
+                    }
+                )
+
+                // Ubicación
+                OutlinedTextField(
+                    value = state.location,
+                    onValueChange = viewModel::onLocationChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    label = { Text(stringResource(R.string.form_location)) },
+                    singleLine = true,
+                    isError = state.locationError,
+                    supportingText = {
+                        if (state.locationError) Text(stringResource(R.string.err_location))
+                    }
+                )
+
+                // Urgencia: radios
+                Text(stringResource(R.string.urgency), style = MaterialTheme.typography.labelLarge)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    Urgency.entries.forEach { urgency ->
+                        RadioOption(
+                            label = stringResource(
+                                when (urgency) {
+                                    Urgency.LOW -> R.string.urgency_low
+                                    Urgency.MEDIUM -> R.string.urgency_medium
+                                    Urgency.HIGH -> R.string.urgency_high
+                                }
+                            ),
+                            selected = state.urgency == urgency,
+                            onClick = { viewModel.onUrgencyChange(urgency) }
+                        )
+                    }
+                }
+
+                // Requiere materiales: check
+                Row(
+                    modifier = Modifier.toggleable(
+                        value = state.needsMaterials,
+                        role = Role.Checkbox,
+                        onValueChange = viewModel::onNeedsMaterialsChange
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Checkbox(checked = state.needsMaterials, onCheckedChange = null)
                     Text(
-                        state.dateMillis?.let { formatDate(it) }
-                            ?: stringResource(R.string.form_pick_date)
+                        text = stringResource(R.string.needs_materials),
+                        modifier = Modifier.padding(start = 8.dp)
                     )
                 }
-                OutlinedButton(onClick = { showTimePicker = true }) {
-                    val hour = state.hour
-                    val minute = state.minute
+
+                // Fecha y hora
+                Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    OutlinedButton(onClick = { showDatePicker = true }) {
+                        Text(
+                            state.dateMillis?.let { formatDate(it) }
+                                ?: stringResource(R.string.form_pick_date)
+                        )
+                    }
+                    OutlinedButton(onClick = { showTimePicker = true }) {
+                        val hour = state.hour
+                        val minute = state.minute
+                        Text(
+                            if (hour != null && minute != null) formatTime(hour, minute)
+                            else stringResource(R.string.form_pick_time)
+                        )
+                    }
+                }
+                if (state.dateTimeError) {
                     Text(
-                        if (hour != null && minute != null) formatTime(hour, minute)
-                        else stringResource(R.string.form_pick_time)
+                        text = stringResource(R.string.err_datetime),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
                     )
                 }
-            }
-            if (state.dateTimeError) {
-                Text(
-                    text = stringResource(R.string.err_datetime),
-                    color = MaterialTheme.colorScheme.error,
-                    style = MaterialTheme.typography.bodySmall
-                )
-            }
 
-            Button(onClick = viewModel::submit, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.form_send))
+                Button(onClick = viewModel::submit, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.form_send))
+                }
             }
         }
     }
