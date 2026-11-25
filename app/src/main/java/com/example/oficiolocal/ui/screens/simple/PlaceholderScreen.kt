@@ -83,6 +83,7 @@ fun ProviderListScreen(
     widthSizeClass: WindowWidthSizeClass,
     onProviderClick: (String) -> Unit,
     onRequestClick: (String) -> Unit,
+    onNotificationsClick: () -> Unit,
     viewModel: DirectoryViewModel = viewModel()
 ) {
     val twoPane = widthSizeClass == WindowWidthSizeClass.Expanded

@@ -17,6 +17,7 @@ interface RequestRepository {
     val requests: Flow<List<ServiceRequest>>
     suspend fun add(request: ServiceRequest)
     suspend fun update(request: ServiceRequest)
+    suspend fun setStatus(id: String, status: RequestStatus)
     suspend fun cancel(id: String)
     suspend fun delete(id: String)
     suspend fun refreshFromApi(): Boolean
@@ -26,7 +27,8 @@ interface RequestRepository {
 class RoomRequestRepository(
     private val dao: ServiceRequestDao,
     private val remote: RemoteRepository,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
+    private val notifications: NotificationRepository
 ) : RequestRepository {
 
     override val requests: Flow<List<ServiceRequest>> =
@@ -34,6 +36,7 @@ class RoomRequestRepository(
 
     override suspend fun add(request: ServiceRequest) {
         dao.insert(request.toEntity())
+        notifications.requestCreated(request.id)
         scope.launch { sendToApi(request.id) }
     }
 
@@ -55,8 +58,19 @@ class RoomRequestRepository(
         }
     }
 
+    override suspend fun setStatus(id: String, status: RequestStatus) {
+        dao.updateStatus(id, status.name)
+        notifications.requestStatusChanged(id, status)
+        scope.launch {
+            val entity = dao.getById(id) ?: return@launch
+            val remoteId = entity.remoteId ?: return@launch
+            remote.updateRequest(entity.toDomain().copy(id = remoteId))
+        }
+    }
+
     override suspend fun cancel(id: String) {
         dao.updateStatus(id, RequestStatus.CANCELLED.name)
+        notifications.requestStatusChanged(id, RequestStatus.CANCELLED)
         scope.launch {
             val entity = dao.getById(id) ?: return@launch
             val remoteId = entity.remoteId ?: return@launch // si aún no se envió, se manda ya cancelada
@@ -77,6 +91,9 @@ class RoomRequestRepository(
             .filter { it.id.isNotBlank() }
             .map { request ->
                 val existing = dao.getByRemoteId(request.id)
+                if (existing != null && existing.status != request.status.name) {
+                    notifications.requestStatusChanged(existing.id, request.status)
+                }
                 request.toEntity().copy(
                     id = existing?.id ?: "remote-${request.id}",
                     remoteId = request.id,
@@ -122,6 +139,10 @@ class FakeRequestRepository : RequestRepository {
 
     override suspend fun update(request: ServiceRequest) = data.update { list ->
         list.map { if (it.id == request.id) request else it }
+    }
+
+    override suspend fun setStatus(id: String, status: RequestStatus) = data.update { list ->
+        list.map { if (it.id == id) it.copy(status = status) else it }
     }
 
     override suspend fun cancel(id: String) = data.update { list ->

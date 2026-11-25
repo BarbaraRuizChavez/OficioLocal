@@ -7,6 +7,9 @@ object Routes {
     const val NEW_REQUEST = "new_request"
     const val FAVORITES = "favorites"
     const val PROFILE = "profile"
+
+    const val NOTIFICATIONS = "notifications"
+
     const val PROVIDER_DETAIL = "provider_detail/{providerId}"
 
     const val NEW_REQUEST_PROVIDER = "new_request/{providerId}"

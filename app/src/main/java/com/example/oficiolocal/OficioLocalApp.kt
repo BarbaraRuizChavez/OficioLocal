@@ -8,5 +8,6 @@ class OficioLocalApp : Application() {
     override fun onCreate() {
         super.onCreate()
         ServiceLocator.init(this)
+        com.example.oficiolocal.data.notifications.NotificationHelper.ensureChannel(this)
     }
 }

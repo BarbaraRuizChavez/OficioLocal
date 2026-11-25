@@ -21,6 +21,7 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -59,7 +60,10 @@ private val navItems = listOf(
 )
 
 @Composable
-fun AppNavGraph(navController: NavHostController) {
+fun AppNavGraph(
+    navController: NavHostController,
+    widthSizeClass: WindowWidthSizeClass,
+) {
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
@@ -144,11 +148,20 @@ fun AppNavGraph(navController: NavHostController) {
 
                     composable(Routes.HOME) {
                         ProviderListScreen(
+                            widthSizeClass = widthSizeClass,
                             onProviderClick = { providerId ->
                                 navController.navigate(Routes.buildProviderDetailRoute(providerId))
+                            },
+                            onRequestClick = { providerId ->
+                                navController.navigate(Routes.buildNewRequestRoute(providerId))
+                            },
+                            onNotificationsClick = {
+                                navController.navigate(Routes.NOTIFICATIONS)
                             }
                         )
                     }
+
+
 
                     composable(Routes.REQUESTS) {
                         MyRequestsScreen(
