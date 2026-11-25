@@ -2,7 +2,6 @@ package com.example.oficiolocal.di
 
 import android.content.Context
 import com.example.oficiolocal.data.local.AppDatabase
-import com.example.oficiolocal.data.remote.ApiClient
 import com.example.oficiolocal.data.repository.AuthRepository
 import com.example.oficiolocal.data.repository.FavoriteRepository
 import com.example.oficiolocal.data.repository.ProviderRepository
@@ -27,7 +26,7 @@ object ServiceLocator {
         appScope.launch {
             authRepository.seedIfEmpty()
             reviewRepository.seedIfEmpty()
-            // Sincronización con la API: si no hay internet, simplemente no hace nada.
+            // Sincronización con la nube (Firestore): si no hay internet, simplemente no hace nada.
             runCatching { providerRepository.refreshFromApi() }
             runCatching { roomRequestRepository.syncPending() }
             runCatching { roomRequestRepository.refreshFromApi() }
@@ -36,7 +35,8 @@ object ServiceLocator {
         }
     }
 
-    private val remoteRepository by lazy { RemoteRepository(ApiClient.service) }
+    // Origen remoto: Cloud Firestore (antes Retrofit + MockAPI)
+    private val remoteRepository by lazy { RemoteRepository() }
 
     val authRepository by lazy { AuthRepository(database.userDao(), applicationContext) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao(), authRepository) }
