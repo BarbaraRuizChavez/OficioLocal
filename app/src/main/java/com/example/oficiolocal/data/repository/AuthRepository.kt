@@ -12,6 +12,12 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import com.google.firebase.FirebaseNetworkException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.FirebaseAuthUserCollisionException
+import com.google.firebase.firestore.FirebaseFirestore
+import kotlinx.coroutines.tasks.await
+import kotlinx.coroutines.withTimeout
 
 /** Usuarios guardados en Room. La sesión vive en memoria. En la siguiente etapa se suma la API con JWT. */
 class AuthRepository(
@@ -24,6 +30,8 @@ class AuthRepository(
     val currentUser: StateFlow<User?> = _currentUser.asStateFlow()
 
     private val seedMutex = Mutex()
+    private val firebaseAuth get() = FirebaseAuth.getInstance()
+    private val profiles get() = FirebaseFirestore.getInstance().collection("users")
 
     private fun hash(password: String): String =
         MessageDigest.getInstance("SHA-256")
@@ -43,7 +51,39 @@ class AuthRepository(
 
     suspend fun login(email: String, password: String): Boolean {
         seedIfEmpty()
-        val user = userDao.findByEmail(email.trim()) ?: return false
+        val cleanEmail = email.trim()
+
+        // 1) Firebase Authentication
+        val firebaseUser = runCatching {
+            withTimeout(8_000) {
+                firebaseAuth.signInWithEmailAndPassword(cleanEmail, password).await().user
+            }
+        }.getOrNull()
+
+        if (firebaseUser != null) {
+            var local = userDao.findByEmail(cleanEmail)
+            if (local == null) {
+                // Primera vez en este teléfono: se crea la copia local con los datos de la nube.
+                val profile = runCatching {
+                    withTimeout(8_000) { profiles.document(firebaseUser.uid).get().await() }
+                }.getOrNull()
+                local = UserEntity(
+                    id = firebaseUser.uid,
+                    name = profile?.getString("name") ?: cleanEmail.substringBefore("@"),
+                    email = cleanEmail,
+                    passwordHash = hash(password),
+                    isProvider = profile?.getBoolean("isProvider") ?: false,
+                    updatedAt = System.currentTimeMillis(),
+                    pendingSync = false
+                )
+                userDao.insert(local)
+            }
+            _currentUser.value = local.toDomain()
+            return true
+        }
+
+        // 2) Respaldo local: cuentas de demostración y uso sin internet
+        val user = userDao.findByEmail(cleanEmail) ?: return false
         if (user.passwordHash != hash(password)) return false
         _currentUser.value = user.toDomain()
         return true
@@ -51,15 +91,38 @@ class AuthRepository(
 
     suspend fun register(name: String, email: String, password: String, isProvider: Boolean): Boolean {
         seedIfEmpty()
-        if (userDao.findByEmail(email.trim()) != null) return false
+        val cleanEmail = email.trim()
+        if (userDao.findByEmail(cleanEmail) != null) return false
+
+        var uid: String? = null
+        try {
+            val created = withTimeout(8_000) {
+                firebaseAuth.createUserWithEmailAndPassword(cleanEmail, password).await().user
+            }
+            uid = created?.uid
+            if (uid != null) {
+                runCatching {
+                    withTimeout(8_000) {
+                        profiles.document(uid).set(
+                            mapOf("name" to name.trim(), "email" to cleanEmail, "isProvider" to isProvider)
+                        ).await()
+                    }
+                }
+            }
+        } catch (e: FirebaseAuthUserCollisionException) {
+            return false // el correo ya existe en Firebase
+        } catch (e: Exception) {
+            // Sin internet u otro error: se registra solo en local (pendingSync = true)
+        }
+
         val user = UserEntity(
-            id = UUID.randomUUID().toString(),
+            id = uid ?: UUID.randomUUID().toString(),
             name = name.trim(),
-            email = email.trim(),
+            email = cleanEmail,
             passwordHash = hash(password),
             isProvider = isProvider,
             updatedAt = System.currentTimeMillis(),
-            pendingSync = true
+            pendingSync = uid == null
         )
         userDao.insert(user)
         _currentUser.value = user.toDomain()
@@ -85,11 +148,13 @@ class AuthRepository(
         val current = _currentUser.value ?: return false
         val deletedRows = userDao.deleteById(current.id)
         if (deletedRows == 0) return false
+        runCatching { firebaseAuth.currentUser?.delete() }
         logout()
         return true
     }
 
     fun logout() {
+        firebaseAuth.signOut()
         _currentUser.value = null
     }
 
