@@ -4,8 +4,10 @@ import android.content.Intent
 import android.net.Uri
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
@@ -15,7 +17,9 @@ import androidx.compose.material.icons.filled.Call
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -24,8 +28,8 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.R
+import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.components.ReviewsSection
@@ -74,11 +78,49 @@ private fun localizedTradeName(category: String): String = when (category.trim()
     else -> category
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderListScreen(
+    widthSizeClass: WindowWidthSizeClass,
     onProviderClick: (String) -> Unit,
+    onRequestClick: (String) -> Unit,
     viewModel: DirectoryViewModel = viewModel()
+) {
+    val twoPane = widthSizeClass == WindowWidthSizeClass.Expanded
+    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    Row(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.weight(if (twoPane) 0.4f else 1f)) {
+            DirectoryList(
+                viewModel = viewModel,
+                onProviderClick = { id -> if (twoPane) selectedId = id else onProviderClick(id) }
+            )
+        }
+        if (twoPane) {
+            Box(modifier = Modifier.weight(0.6f)) {
+                val id = selectedId
+                if (id == null) {
+                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                        Text(stringResource(R.string.directory_select_hint))
+                    }
+                } else {
+                    key(id) {
+                        ProviderDetailScreen(
+                            providerId = id,
+                            onBackClick = { selectedId = null },
+                            onRequestClick = { onRequestClick(id) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun DirectoryList(
+    onProviderClick: (String) -> Unit,
+    viewModel: DirectoryViewModel
 ) {
     Scaffold(
         topBar = { TopAppBar(title = { Text(stringResource(R.string.directory_title)) }) }
@@ -117,8 +159,12 @@ fun ProviderListScreen(
                     Text(stringResource(R.string.directory_empty))
                 }
             } else {
-                LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp)) {
-                    items(viewModel.providersList) { provider ->
+                LazyVerticalGrid(
+                    columns = GridCells.Adaptive(minSize = 320.dp),
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    gridItems(viewModel.providersList) { provider ->
                         Card(
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -211,81 +257,72 @@ fun ProviderDetailScreen(
                 Text(stringResource(R.string.provider_not_found))
             }
         } else {
-            Column(
+            Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(paddingValues)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp)
+                    .padding(paddingValues),
+                contentAlignment = Alignment.TopCenter
             ) {
-                Text(text = provider.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
-                Text(text = "${localizedTradeName(provider.category)} • ${provider.location}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
-
-                Spacer(modifier = Modifier.height(12.dp))
-
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
-                    Spacer(modifier = Modifier.width(4.dp))
-                    Text(
-                        text = stringResource(
-                            R.string.provider_rating_reviews,
-                            provider.rating.toString(),
-                            provider.reviewCount.toString()
-                        ),
-                        style = MaterialTheme.typography.bodyLarge,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-
-                HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
-
-                Text(text = stringResource(R.string.provider_description_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(text = provider.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = stringResource(R.string.provider_schedule_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = stringResource(R.string.provider_price_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
-
-                Spacer(modifier = Modifier.height(16.dp))
-
-                Text(text = stringResource(R.string.provider_services_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
-                Column(modifier = Modifier.padding(top = 4.dp)) {
-                    provider.services.forEach { service ->
-                        Text(text = "• $service", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                Column(
+                    modifier = Modifier
+                        .widthIn(max = 640.dp)
+                        .verticalScroll(rememberScrollState())
+                        .padding(16.dp)
+                ) {
+                    Text(text = provider.name, style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold)
+                    Text(text = "${localizedTradeName(provider.category)} • ${provider.location}", style = MaterialTheme.typography.titleMedium, color = MaterialTheme.colorScheme.secondary)
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Icon(Icons.Default.Star, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = stringResource(
+                                R.string.provider_rating_reviews,
+                                provider.rating.toString(),
+                                provider.reviewCount.toString()
+                            ),
+                            style = MaterialTheme.typography.bodyLarge,
+                            fontWeight = FontWeight.Medium
+                        )
                     }
-                }
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                ReviewsSection(providerId = provider.id)
-
-                Spacer(modifier = Modifier.height(24.dp))
-
-                Button(
-                    onClick = {
-                        val phoneUri = Uri.fromParts("tel", provider.phone, null)
-                        context.startActivity(Intent(Intent.ACTION_DIAL, phoneUri))
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    enabled = provider.phone.isNotBlank()
-                ) {
-                    Icon(Icons.Default.Call, contentDescription = null)
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text(stringResource(R.string.provider_call, provider.phone))
-                }
-
-                Spacer(modifier = Modifier.height(12.dp))
-                Button(
-                    onClick = onRequestClick,
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(stringResource(R.string.request_service))
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 16.dp))
+                    Text(text = stringResource(R.string.provider_description_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(text = provider.description, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = stringResource(R.string.provider_schedule_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = stringResource(R.string.provider_price_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(top = 4.dp))
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(text = stringResource(R.string.provider_services_title), style = MaterialTheme.typography.titleSmall, fontWeight = FontWeight.Bold)
+                    Column(modifier = Modifier.padding(top = 4.dp)) {
+                        provider.services.forEach { service ->
+                            Text(text = "• $service", style = MaterialTheme.typography.bodyMedium, modifier = Modifier.padding(vertical = 2.dp))
+                        }
+                    }
+                    Spacer(modifier = Modifier.height(24.dp))
+                    ReviewsSection(providerId = provider.id)
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Button(
+                        onClick = {
+                            val phoneUri = Uri.fromParts("tel", provider.phone, null)
+                            context.startActivity(Intent(Intent.ACTION_DIAL, phoneUri))
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = provider.phone.isNotBlank()
+                    ) {
+                        Icon(Icons.Default.Call, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(stringResource(R.string.provider_call, provider.phone))
+                    }
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Button(
+                        onClick = onRequestClick,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.request_service))
+                    }
                 }
             }
         }

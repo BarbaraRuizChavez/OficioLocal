@@ -1,0 +1,4 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="directory_select_hint">Selecciona un prestador para ver su detalle</string>
+</resources>
