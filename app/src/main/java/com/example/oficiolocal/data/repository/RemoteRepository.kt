@@ -86,17 +86,10 @@ class RemoteRepository(
 }
 
 // ---------- Conversión Firestore <-> dominio ----------
-
 private fun Provider.toMap() = mapOf(
-    "name" to name,
-    "category" to category,
-    "location" to location,
-    "rating" to rating,
-    "reviewCount" to reviewCount,
-    "priceRange" to priceRange,
-    "schedule" to schedule,
-    "phone" to phone,
-    "description" to description,
+    "name" to name, "category" to category, "location" to location,
+    "rating" to rating, "reviewCount" to reviewCount, "priceRange" to priceRange,
+    "schedule" to schedule, "phone" to phone, "description" to description,
     "services" to services
 )
 
@@ -115,27 +108,18 @@ private fun DocumentSnapshot.toProvider() = Provider(
 )
 
 private fun ServiceRequest.toMap() = mapOf(
-    "providerId" to providerId,
-    "providerName" to providerName,
-    "jobType" to jobType?.name,
-    "description" to description,
-    "location" to location,
-    "urgency" to urgency.name,
-    "needsMaterials" to needsMaterials,
-    "status" to status.name,
-    "dateMillis" to dateMillis,
-    "hour" to hour,
-    "minute" to minute
+    "providerId" to providerId, "providerName" to providerName, "jobType" to jobType?.name,
+    "description" to description, "location" to location, "urgency" to urgency.name,
+    "needsMaterials" to needsMaterials, "status" to status.name,
+    "dateMillis" to dateMillis, "hour" to hour, "minute" to minute
 )
 
 private fun DocumentSnapshot.toRequest() = ServiceRequest(
     id = id,
     providerName = getString("providerName").orEmpty(),
     description = getString("description").orEmpty(),
-    urgency = runCatching { Urgency.valueOf(getString("urgency").orEmpty()) }
-        .getOrDefault(Urgency.MEDIUM),
-    status = runCatching { RequestStatus.valueOf(getString("status").orEmpty()) }
-        .getOrDefault(RequestStatus.PENDING),
+    urgency = runCatching { Urgency.valueOf(getString("urgency").orEmpty()) }.getOrDefault(Urgency.MEDIUM),
+    status = runCatching { RequestStatus.valueOf(getString("status").orEmpty()) }.getOrDefault(RequestStatus.PENDING),
     dateMillis = getLong("dateMillis"),
     hour = getLong("hour")?.toInt(),
     minute = getLong("minute")?.toInt(),
@@ -146,11 +130,8 @@ private fun DocumentSnapshot.toRequest() = ServiceRequest(
 )
 
 private fun Review.toMap() = mapOf(
-    "providerId" to providerId,
-    "userName" to userName,
-    "rating" to rating,
-    "comment" to comment,
-    "date" to date
+    "providerId" to providerId, "userName" to userName, "rating" to rating,
+    "comment" to comment, "date" to date
 )
 
 private fun DocumentSnapshot.toReview() = Review(
