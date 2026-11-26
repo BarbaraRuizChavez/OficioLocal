@@ -28,7 +28,7 @@ import com.example.oficiolocal.data.local.entity.UserEntity
         ProviderEntity::class, ServiceRequestEntity::class,
         NotificationEntity::class, MediaAttachmentEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -96,6 +96,14 @@ abstract class AppDatabase : RoomDatabase() {
             }
         }
 
+        private val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE `reviews` ADD COLUMN `ownerUid` TEXT")
+                // Las reseñas locales antiguas no tienen propietario remoto; se conservan solo en Room.
+                db.execSQL("UPDATE `reviews` SET `pendingSync` = 0 WHERE `ownerUid` IS NULL")
+            }
+        }
+
         @Volatile
         private var instance: AppDatabase? = null
 
@@ -106,7 +114,7 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "oficiolocal.db"
                 )
-                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5)
+                    .addMigrations(MIGRATION_2_3, MIGRATION_3_4, MIGRATION_4_5, MIGRATION_5_6)
                     // Aqui conservamos como respaldo para saltos sin migración definida durante el desarrollo.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { instance = it }

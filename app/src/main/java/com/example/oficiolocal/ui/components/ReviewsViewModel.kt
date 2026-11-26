@@ -36,8 +36,15 @@ class ReviewsViewModel(private val providerId: String) : ViewModel() {
     fun onRating(value: Int) { rating = value.toDouble() }
     fun onComment(value: String) { comment = value }
 
-    fun canManage(review: Review): Boolean =
-        authRepository.getCurrentUser()?.name == review.userName
+    fun canManage(review: Review): Boolean {
+        val currentUid = authRepository.getFirebaseUserId()
+        return if (review.ownerUid != null) {
+            currentUid == review.ownerUid
+        } else {
+            currentUid == null && review.remoteId == null &&
+                authRepository.getCurrentUser()?.name == review.userName
+        }
+    }
 
     fun startEditing(review: Review) {
         if (!canManage(review)) return

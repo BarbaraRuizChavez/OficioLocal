@@ -17,7 +17,8 @@ data class ReviewEntity(
     val updatedAt: Long,
     val pendingSync: Boolean,
     val remoteId: String? = null,
-    @ColumnInfo(defaultValue = "0") val pendingDelete: Boolean = false
+    @ColumnInfo(defaultValue = "0") val pendingDelete: Boolean = false,
+    val ownerUid: String? = null
 )
 
 fun ReviewEntity.toDomain() = Review(
@@ -26,5 +27,7 @@ fun ReviewEntity.toDomain() = Review(
     userName = userName,
     rating = rating,
     comment = comment,
-    date = date
+    date = date,
+    ownerUid = ownerUid,
+    remoteId = remoteId
 )

@@ -142,7 +142,7 @@ private fun DocumentSnapshot.toRequest() = ServiceRequest(
 
 private fun Review.toMap() = mapOf(
     "providerId" to providerId, "userName" to userName, "rating" to rating,
-    "comment" to comment, "date" to date
+    "comment" to comment, "date" to date, "ownerUid" to ownerUid
 )
 
 private fun DocumentSnapshot.toReview() = Review(
@@ -151,5 +151,6 @@ private fun DocumentSnapshot.toReview() = Review(
     userName = getString("userName").orEmpty(),
     rating = getDouble("rating") ?: 0.0,
     comment = getString("comment").orEmpty(),
-    date = getString("date").orEmpty()
+    date = getString("date").orEmpty(),
+    ownerUid = getString("ownerUid")
 )

@@ -16,7 +16,8 @@ import kotlinx.coroutines.sync.withLock
 /** Room conserva las reseñas y la API aporta las reseñas compartidas del servidor. */
 class ReviewRepository(
     private val dao: ReviewDao,
-    private val remote: RemoteRepository
+    private val remote: RemoteRepository,
+    private val auth: AuthRepository
 ) {
 
     private val seedMutex = Mutex()
@@ -50,7 +51,8 @@ class ReviewRepository(
                 date = review.date,
                 updatedAt = System.currentTimeMillis(),
                 pendingSync = false,
-                remoteId = review.id
+                remoteId = review.id,
+                ownerUid = review.ownerUid
             )
         }
         dao.upsertAll(entities)
@@ -59,6 +61,7 @@ class ReviewRepository(
 
     suspend fun addReview(providerId: String, userName: String, rating: Double, comment: String) {
         val id = UUID.randomUUID().toString()
+        val ownerUid = auth.getFirebaseUserId()
         dao.insert(
             ReviewEntity(
                 id = id,
@@ -68,42 +71,60 @@ class ReviewRepository(
                 comment = comment,
                 date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
                 updatedAt = System.currentTimeMillis(),
-                pendingSync = true
+                pendingSync = ownerUid != null,
+                ownerUid = ownerUid
             )
         )
-        syncReview(id)
+        if (ownerUid != null) syncReview(id)
     }
 
     suspend fun updateReview(id: String, userName: String, rating: Double, comment: String) {
         val existing = dao.getById(id) ?: return
-        if (existing.userName != userName || existing.pendingDelete) return
+        if (existing.remoteId != null && existing.ownerUid == null) return
+        val currentUid = auth.getFirebaseUserId()
+        val ownsReview = if (existing.ownerUid != null) {
+            existing.ownerUid == currentUid
+        } else {
+            currentUid == null && existing.userName == userName
+        }
+        if (!ownsReview || existing.pendingDelete) return
         dao.update(
             existing.copy(
                 rating = rating,
                 comment = comment.trim(),
                 date = SimpleDateFormat("yyyy-MM-dd", Locale.US).format(Date()),
                 updatedAt = System.currentTimeMillis(),
-                pendingSync = true
+                pendingSync = existing.ownerUid != null
             )
         )
-        syncReview(id)
+        if (existing.ownerUid != null) syncReview(id)
     }
 
     suspend fun deleteReview(id: String, userName: String) {
         val existing = dao.getById(id) ?: return
-        if (existing.userName != userName) return
+        if (existing.remoteId != null && existing.ownerUid == null) return
+        val currentUid = auth.getFirebaseUserId()
+        val ownsReview = if (existing.ownerUid != null) {
+            existing.ownerUid == currentUid
+        } else {
+            currentUid == null && existing.userName == userName
+        }
+        if (!ownsReview) return
         val remoteId = existing.remoteId
         if (remoteId == null) {
             dao.delete(id)
-        } else if (remote.deleteReview(remoteId).isSuccess) {
+        } else if (existing.ownerUid != null && existing.ownerUid == currentUid &&
+            remote.deleteReview(remoteId).isSuccess
+        ) {
             dao.delete(id)
-        } else {
+        } else if (existing.ownerUid != null && existing.ownerUid == currentUid) {
             dao.markDeletePending(id)
         }
     }
 
     suspend fun syncPending() {
-        dao.getPendingSync().forEach { review ->
+        val currentUid = auth.getFirebaseUserId() ?: return
+        dao.getPendingSync().filter { it.ownerUid == currentUid }.forEach { review ->
             if (review.pendingDelete) {
                 val remoteId = review.remoteId
                 if (remoteId == null || remote.deleteReview(remoteId).isSuccess) {
@@ -117,6 +138,8 @@ class ReviewRepository(
 
     private suspend fun syncReview(id: String) {
         val review = dao.getById(id) ?: return
+        val currentUid = auth.getFirebaseUserId() ?: return
+        if (review.ownerUid != currentUid) return
         if (!review.pendingSync || review.pendingDelete) return
         val remoteId = review.remoteId
         val result = if (remoteId == null) {

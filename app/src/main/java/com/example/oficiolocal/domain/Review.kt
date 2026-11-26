@@ -6,5 +6,7 @@ data class Review(
     val userName: String,
     val rating: Double,
     val comment: String,
-    val date: String
+    val date: String,
+    val ownerUid: String? = null,
+    val remoteId: String? = null
 )

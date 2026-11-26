@@ -43,7 +43,9 @@ object ServiceLocator {
     val authRepository by lazy { AuthRepository(database.userDao(), applicationContext) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao(), authRepository) }
     val providerRepository by lazy { ProviderRepository(database.providerDao(), remoteRepository) }
-    val reviewRepository by lazy { ReviewRepository(database.reviewDao(), remoteRepository) }
+    val reviewRepository by lazy {
+        ReviewRepository(database.reviewDao(), remoteRepository, authRepository)
+    }
     val settingsRepository by lazy { SettingsRepository(applicationContext) }
     val notificationRepository by lazy {
         NotificationRepository(database.notificationDao(), applicationContext, settingsRepository)
