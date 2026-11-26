@@ -27,7 +27,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -70,7 +69,7 @@ fun AppNavGraph(
 
     val showMenu = navItems.any { it.route == currentRoute }
     // Pantallas anchas (tableta): riel lateral. Pantallas compactas: barra inferior.
-    val isWide = LocalConfiguration.current.screenWidthDp >= 600
+    val isWide = widthSizeClass != WindowWidthSizeClass.Compact
     val offline by ServiceLocator.settingsRepository.offline.collectAsState()
 
     fun goTo(route: String) {
