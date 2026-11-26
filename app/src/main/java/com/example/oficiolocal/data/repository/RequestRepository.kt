@@ -21,6 +21,7 @@ interface RequestRepository {
     suspend fun cancel(id: String)
     suspend fun delete(id: String)
     suspend fun refreshFromApi(): Boolean
+    suspend fun syncPending()
 }
 
 /** Solicitudes: siempre se guardan primero en Room y después se envían a la API. */
@@ -124,7 +125,7 @@ class RoomRequestRepository(
     }
 
     /** Envía a la API las solicitudes que quedaron guardadas sin internet. */
-    suspend fun syncPending() {
+    override suspend fun syncPending() {
         val userId = auth.getFirebaseUserId() ?: return
         dao.getUnsynced()
             .filter { it.clientId == userId }
@@ -175,4 +176,6 @@ class FakeRequestRepository : RequestRepository {
     override suspend fun delete(id: String) = data.update { list -> list.filter { it.id != id } }
 
     override suspend fun refreshFromApi(): Boolean = true
+
+    override suspend fun syncPending() = Unit
 }
