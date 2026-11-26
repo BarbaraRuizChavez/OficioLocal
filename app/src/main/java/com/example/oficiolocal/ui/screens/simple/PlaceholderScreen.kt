@@ -18,6 +18,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.Call
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Star
@@ -122,7 +123,8 @@ fun ProviderListScreen(
         Box(modifier = Modifier.weight(if (twoPane) 0.4f else 1f)) {
             DirectoryList(
                 viewModel = viewModel,
-                onProviderClick = { id -> if (twoPane) selectedId = id else onProviderClick(id) }
+                onProviderClick = { id -> if (twoPane) selectedId = id else onProviderClick(id) },
+                onNotificationsClick = onNotificationsClick
             )
         }
         if (twoPane) {
@@ -150,10 +152,33 @@ fun ProviderListScreen(
 @Composable
 private fun DirectoryList(
     onProviderClick: (String) -> Unit,
+    onNotificationsClick: () -> Unit,
     viewModel: DirectoryViewModel
 ) {
+    val unreadCount by ServiceLocator.notificationRepository.unreadCount.collectAsState(initial = 0)
+
     Scaffold(
-        topBar = { TopAppBar(title = { Text(stringResource(R.string.directory_title)) }) }
+        topBar = {
+            TopAppBar(
+                title = { Text(stringResource(R.string.directory_title)) },
+                actions = {
+                    IconButton(onClick = onNotificationsClick) {
+                        BadgedBox(
+                            badge = {
+                                if (unreadCount > 0) {
+                                    Badge { Text(unreadCount.toString()) }
+                                }
+                            }
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.Notifications,
+                                contentDescription = stringResource(R.string.notif_title)
+                            )
+                        }
+                    }
+                }
+            )
+        }
     ) { paddingValues ->
         Column(
             modifier = Modifier
