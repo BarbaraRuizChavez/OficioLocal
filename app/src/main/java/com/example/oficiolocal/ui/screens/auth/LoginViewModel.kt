@@ -1,5 +1,6 @@
 package com.example.oficiolocal.ui.screens.auth
 
+import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -44,7 +45,7 @@ class LoginViewModel : ViewModel() {
     fun submit(onSuccess: () -> Unit) {
         errorRes = when {
             isRegister && name.isBlank() -> R.string.error_name
-            !email.contains("@") -> R.string.error_email
+            !Patterns.EMAIL_ADDRESS.matcher(email.trim()).matches() -> R.string.error_email
             password.length < 6 -> R.string.error_password
             else -> null
         }
@@ -52,9 +53,9 @@ class LoginViewModel : ViewModel() {
 
         viewModelScope.launch {
             val ok = if (isRegister) {
-                authRepository.register(name, email, password, isProvider)
+                authRepository.register(name.trim(), email.trim(), password, isProvider)
             } else {
-                authRepository.login(email, password)
+                authRepository.login(email.trim(), password)
             }
 
             if (ok) {

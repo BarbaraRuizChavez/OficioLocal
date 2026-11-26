@@ -387,6 +387,7 @@ fun ProviderDetailScreen(
     }
     // Captura el valor delegado para que Kotlin pueda hacer smart cast de forma segura.
     val currentProvider = provider
+    val viewer by ServiceLocator.authRepository.currentUser.collectAsState()
     Scaffold(
         topBar = {
             TopAppBar(
@@ -547,12 +548,15 @@ fun ProviderDetailScreen(
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(stringResource(R.string.provider_whatsapp))
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Button(
-                        onClick = onRequestClick,
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text(stringResource(R.string.request_service))
+                    // Solo los clientes solicitan servicios; un prestador no se contrata a sí mismo.
+                    if (viewer?.isProvider != true) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Button(
+                            onClick = onRequestClick,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text(stringResource(R.string.request_service))
+                        }
                     }
                     HorizontalDivider()
                     ReviewsSection(providerId = currentProvider.id)
