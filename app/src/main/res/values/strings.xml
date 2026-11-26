@@ -90,6 +90,8 @@
     <string name="back">Regresar</string>
 
     <!-- Acceso y directorio -->
+    <string name="login_title_login">Bienvenido</string>
+    <string name="login_intro_login">Inicia sesión para acceder a tu cuenta</string>
     <string name="login_background_description">Fondo de OficioLocal</string>
     <string name="login_title_register">¡Crea tu cuenta!</string>
     <string name="login_title_welcome">¡Bienvenido!</string>

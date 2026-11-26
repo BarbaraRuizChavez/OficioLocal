@@ -88,6 +88,8 @@
     <string name="back">Back</string>
 
     <!-- Login and provider directory -->
+    <string name="login_title_login">Welcome</string>
+    <string name="login_intro_login">Sign in to access your account</string>
     <string name="login_background_description">OficioLocal background</string>
     <string name="login_title_register">Create your account!</string>
     <string name="login_title_welcome">Welcome!</string>
