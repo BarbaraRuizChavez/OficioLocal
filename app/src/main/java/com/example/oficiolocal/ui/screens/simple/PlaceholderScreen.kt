@@ -89,7 +89,11 @@ class DirectoryViewModel : ViewModel() {
     private fun fetchProviders() {
         providersList = repository.getProviders(searchQuery, selectedCategory)
             .filter { !onlyToday || isAvailableToday(it.schedule) }
-            .filter { limit -> maxPrice?.let { max -> (maxPriceOf(limit.priceRange) ?: 0) <= max } ?: true }
+            .filter { provider ->
+                maxPrice?.let { max ->
+                    maxPriceOf(provider.priceRange)?.let { price -> price <= max } ?: false
+                } ?: true
+            }
     }
 }
 

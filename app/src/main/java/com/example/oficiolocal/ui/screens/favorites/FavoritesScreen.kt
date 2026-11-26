@@ -25,6 +25,7 @@ import com.example.oficiolocal.data.repository.FavoriteRepository
 import com.example.oficiolocal.data.repository.ProviderRepository
 import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.ui.components.FavoriteButton
+import com.example.oficiolocal.ui.screens.simple.localizedTradeName
 
 @Composable
 fun FavoritesScreen(
@@ -100,7 +101,7 @@ private fun FavoriteProviderCard(
                     style = MaterialTheme.typography.titleMedium
                 )
                 Text(
-                    text = "${provider.category} · ${provider.location}",
+                    text = "${localizedTradeName(provider.category)} · ${provider.location}",
                     style = MaterialTheme.typography.bodyMedium
                 )
                 Text(
