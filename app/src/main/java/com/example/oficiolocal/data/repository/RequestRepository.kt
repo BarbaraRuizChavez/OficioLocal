@@ -28,7 +28,8 @@ class RoomRequestRepository(
     private val dao: ServiceRequestDao,
     private val remote: RemoteRepository,
     private val scope: CoroutineScope,
-    private val notifications: NotificationRepository
+    private val notifications: NotificationRepository,
+    private val auth: AuthRepository
 ) : RequestRepository {
 
     override val requests: Flow<List<ServiceRequest>> =
@@ -50,6 +51,7 @@ class RoomRequestRepository(
 
         val remoteId = current.remoteId
         scope.launch {
+            if (auth.getFirebaseUserId() == null) return@launch
             if (remoteId == null) {
                 sendToApi(request.id)
             } else {
@@ -62,6 +64,7 @@ class RoomRequestRepository(
         dao.updateStatus(id, status.name)
         notifications.requestStatusChanged(id, status)
         scope.launch {
+            if (auth.getFirebaseUserId() == null) return@launch
             val entity = dao.getById(id) ?: return@launch
             val remoteId = entity.remoteId
             if (remoteId == null) {
@@ -76,6 +79,7 @@ class RoomRequestRepository(
         dao.updateStatus(id, RequestStatus.CANCELLED.name)
         notifications.requestStatusChanged(id, RequestStatus.CANCELLED)
         scope.launch {
+            if (auth.getFirebaseUserId() == null) return@launch
             val entity = dao.getById(id) ?: return@launch
             val remoteId = entity.remoteId
             if (remoteId == null) {
@@ -87,14 +91,21 @@ class RoomRequestRepository(
     }
 
     override suspend fun delete(id: String) {
-        val remoteId = dao.getById(id)?.remoteId
+        val entity = dao.getById(id)
+        val userId = auth.getFirebaseUserId()
         dao.delete(id)
-        if (remoteId != null) scope.launch { remote.deleteRequest(remoteId) }
+        val remoteId = entity?.remoteId
+        if (remoteId != null && userId != null && entity?.clientId == userId) {
+            scope.launch { remote.deleteRequest(remoteId) }
+        }
     }
 
     /** Recupera solicitudes remotas y las combina con Room sin duplicar las ya sincronizadas. */
     override suspend fun refreshFromApi(): Boolean {
-        val remoteRequests = remote.getRequests().getOrNull() ?: return false
+        val user = auth.getCurrentUser() ?: return false
+        val userId = auth.getFirebaseUserId() ?: return false
+        val providerId = userId.takeIf { user.isProvider }
+        val remoteRequests = remote.getRequestsForUser(userId, providerId).getOrNull() ?: return false
         val entities = remoteRequests
             .filter { it.id.isNotBlank() }
             .map { request ->
@@ -114,12 +125,16 @@ class RoomRequestRepository(
 
     /** Envía a la API las solicitudes que quedaron guardadas sin internet. */
     suspend fun syncPending() {
-        dao.getUnsynced().forEach { sendToApi(it.id) }
+        val userId = auth.getFirebaseUserId() ?: return
+        dao.getUnsynced()
+            .filter { it.clientId == userId }
+            .forEach { sendToApi(it.id) }
     }
 
     private suspend fun sendToApi(id: String) {
+        val userId = auth.getFirebaseUserId() ?: return
         val entity = dao.getById(id) ?: return
-        if (entity.remoteId != null) return
+        if (entity.remoteId != null || entity.clientId != userId) return
         remote.createRequest(entity.toDomain()).onSuccess { created ->
             if (created.id.isNotBlank()) dao.setRemoteId(id, created.id)
         }

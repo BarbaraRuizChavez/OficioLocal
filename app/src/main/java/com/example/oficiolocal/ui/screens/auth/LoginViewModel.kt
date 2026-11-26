@@ -58,6 +58,8 @@ class LoginViewModel : ViewModel() {
             }
 
             if (ok) {
+                runCatching { ServiceLocator.requestRepository.syncPending() }
+                runCatching { ServiceLocator.requestRepository.refreshFromApi() }
                 ServiceLocator.authRepository.getCurrentUser()?.let { user ->
                     if (user.isProvider) {
                         ServiceLocator.providerRepository.ensureProviderProfile(user)

@@ -41,8 +41,17 @@ class RemoteRepository(
     }
 
     // ---------- Solicitudes ----------
-    suspend fun getRequests(): Result<List<ServiceRequest>> = online {
-        requests.get().await().documents.map { it.toRequest() }
+    suspend fun getRequestsForUser(
+        userId: String,
+        providerId: String? = null
+    ): Result<List<ServiceRequest>> = online {
+        val clientDocuments = requests.whereEqualTo("clientId", userId).get().await().documents
+        val providerDocuments = providerId?.let {
+            requests.whereEqualTo("providerId", it).get().await().documents
+        }.orEmpty()
+        (clientDocuments + providerDocuments)
+            .distinctBy { it.id }
+            .map { it.toRequest() }
     }
 
     suspend fun createRequest(request: ServiceRequest): Result<ServiceRequest> = online {

@@ -31,8 +31,6 @@ object ServiceLocator {
             reviewRepository.seedIfEmpty()
             // Sincronización con la API: si no hay internet, simplemente no hace nada.
             runCatching { providerRepository.refreshFromApi() }
-            runCatching { roomRequestRepository.syncPending() }
-            runCatching { roomRequestRepository.refreshFromApi() }
             runCatching { reviewRepository.syncPending() }
             runCatching { reviewRepository.refreshFromApi() }
             runCatching { mediaAttachmentRepository.syncPendingUploads() }
@@ -59,7 +57,8 @@ object ServiceLocator {
             database.serviceRequestDao(),
             remoteRepository,
             appScope,
-            notificationRepository
+            notificationRepository,
+            authRepository
         )
     }
     val requestRepository: RequestRepository get() = roomRequestRepository
