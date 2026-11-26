@@ -38,6 +38,7 @@ import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.navArgument
 import com.example.oficiolocal.R
 import com.example.oficiolocal.di.ServiceLocator
+import com.example.oficiolocal.data.notifications.NotificationsScreen
 import com.example.oficiolocal.ui.screens.auth.LoginScreen
 import com.example.oficiolocal.ui.screens.favorites.FavoritesScreen
 import com.example.oficiolocal.ui.screens.profile.ProfileScreen
@@ -161,7 +162,11 @@ fun AppNavGraph(
                         )
                     }
 
-
+                    composable(Routes.NOTIFICATIONS) {
+                        NotificationsScreen(
+                            onBackClick = { navController.popBackStack() }
+                        )
+                    }
 
                     composable(Routes.REQUESTS) {
                         MyRequestsScreen(

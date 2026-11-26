@@ -21,7 +21,7 @@ import com.example.oficiolocal.data.local.entity.ReviewEntity
 import com.example.oficiolocal.data.local.entity.ServiceRequestEntity
 import com.example.oficiolocal.data.local.entity.UserEntity
 
-// Al agregar una entidad nueva: sumarla a la lista y subir 'version'.
+// Al agregar una entidad nueva: sumarla a la lista y subir 'version'
 @Database(
     entities = [
         UserEntity::class, FavoriteEntity::class, ReviewEntity::class,
@@ -101,7 +101,7 @@ abstract class AppDatabase : RoomDatabase() {
                     "oficiolocal.db"
                 )
                     .addMigrations(MIGRATION_2_3, MIGRATION_3_4)
-                    // Se conserva como respaldo para saltos sin migración definida durante el desarrollo.
+                    // Aqui conservamos como respaldo para saltos sin migración definida durante el desarrollo.
                     .fallbackToDestructiveMigration(dropAllTables = true)
                     .build().also { instance = it }
             }

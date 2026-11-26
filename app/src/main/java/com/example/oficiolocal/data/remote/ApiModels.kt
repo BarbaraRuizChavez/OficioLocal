@@ -7,7 +7,7 @@ import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
 import com.example.oficiolocal.domain.Urgency
 
-// Casi todo es nulo porque Gson no respeta los valores por defecto de Kotlin.
+//* Casi todo es nulo porque Json no respeta los valores por defecto de Kotlin *//
 data class ProviderDto(
     val id: String? = null,
     val name: String? = null,

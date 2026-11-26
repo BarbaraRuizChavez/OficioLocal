@@ -6,7 +6,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
-
+/**Peticiones a la api por que se me olvida**/
 interface ApiService {
     @GET("providers")
     suspend fun getProviders(): List<ProviderDto>
