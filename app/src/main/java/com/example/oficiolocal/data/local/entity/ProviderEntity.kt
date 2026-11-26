@@ -16,19 +16,22 @@ data class ProviderEntity(
     val schedule: String,
     val phone: String,
     val description: String,
-    val services: String // servicios separados por "|"
+    val services: String, // servicios separados por "|"
+    val ownerUid: String? = null
 )
 
 fun ProviderEntity.toDomain() = Provider(
     id = id, name = name, category = category, location = location,
     rating = rating, reviewCount = reviewCount, priceRange = priceRange,
     schedule = schedule, phone = phone, description = description,
-    services = if (services.isBlank()) emptyList() else services.split("|")
+    services = if (services.isBlank()) emptyList() else services.split("|"),
+    ownerUid = ownerUid
 )
 
 fun Provider.toEntity() = ProviderEntity(
     id = id, name = name, category = category, location = location,
     rating = rating, reviewCount = reviewCount, priceRange = priceRange,
     schedule = schedule, phone = phone, description = description,
-    services = services.joinToString("|")
+    services = services.joinToString("|"),
+    ownerUid = ownerUid
 )

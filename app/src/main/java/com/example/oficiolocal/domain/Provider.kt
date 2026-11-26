@@ -11,5 +11,7 @@ data class Provider(
     val schedule: String,
     val phone: String,
     val description: String,
-    val services: List<String>
+    val services: List<String>,
+    /** UID Firebase del usuario propietario; null para prestadores de demostración. */
+    val ownerUid: String? = null
 )

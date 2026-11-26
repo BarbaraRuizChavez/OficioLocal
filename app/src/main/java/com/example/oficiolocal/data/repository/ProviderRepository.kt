@@ -10,7 +10,8 @@ import kotlinx.coroutines.runBlocking
 /** Prestadores: se leen de Room y se actualizan desde la API. */
 class ProviderRepository(
     private val dao: ProviderDao,
-    private val remote: RemoteRepository
+    private val remote: RemoteRepository,
+    private val auth: AuthRepository
 ) {
 
     // Datos de ejemplo: se usan solo si la base está vacía y aún no hay internet.
@@ -84,15 +85,19 @@ class ProviderRepository(
                 schedule = "",
                 phone = "",
                 description = "",
-                services = emptyList()
+                services = emptyList(),
+                ownerUid = auth.getFirebaseUserId()
             )
         )
     }
 
     /** Guarda primero en Room y luego intenta actualizar el perfil remoto. */
     suspend fun save(provider: Provider): Boolean {
-        persistLocal(provider)
-        return remote.upsertProvider(provider).isSuccess
+        val ownerUid = auth.getFirebaseUserId()
+        val ownedProvider = provider.copy(ownerUid = ownerUid)
+        persistLocal(ownedProvider)
+        // Cuentas demo o sesiones locales pueden editar Room, pero nunca escribir a Firestore.
+        return ownerUid != null && remote.upsertProvider(ownedProvider).isSuccess
     }
 
     /** Actualiza el perfil desde Firestore; mantiene la copia local si no hay conexión. */

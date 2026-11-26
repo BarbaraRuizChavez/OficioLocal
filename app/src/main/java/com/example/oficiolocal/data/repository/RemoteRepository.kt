@@ -99,7 +99,7 @@ private fun Provider.toMap() = mapOf(
     "name" to name, "category" to category, "location" to location,
     "rating" to rating, "reviewCount" to reviewCount, "priceRange" to priceRange,
     "schedule" to schedule, "phone" to phone, "description" to description,
-    "services" to services
+    "services" to services, "userId" to ownerUid
 )
 
 private fun DocumentSnapshot.toProvider() = Provider(
@@ -113,7 +113,8 @@ private fun DocumentSnapshot.toProvider() = Provider(
     schedule = getString("schedule").orEmpty(),
     phone = getString("phone").orEmpty(),
     description = getString("description").orEmpty(),
-    services = (get("services") as? List<*>)?.filterIsInstance<String>() ?: emptyList()
+    services = (get("services") as? List<*>)?.filterIsInstance<String>() ?: emptyList(),
+    ownerUid = getString("userId")
 )
 
 private fun ServiceRequest.toMap() = mapOf(
