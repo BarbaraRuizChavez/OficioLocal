@@ -1,5 +1,6 @@
 package com.example.oficiolocal.ui.screens.requestdetail
 
+import android.net.Uri
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -9,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
@@ -27,6 +29,8 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -37,6 +41,7 @@ import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.ui.screens.requests.formatRequestDate
 import com.example.oficiolocal.ui.screens.requests.statusLabel
 import com.example.oficiolocal.ui.screens.requests.urgencyLabel
+import coil3.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -51,6 +56,7 @@ fun RequestDetailScreen(
     )
 ) {
     val request by viewModel.request.collectAsState()
+    val attachments by viewModel.attachments.collectAsState()
 
     Scaffold(
         topBar = {
@@ -109,6 +115,18 @@ fun RequestDetailScreen(
                         "${stringResource(R.string.rd_materials)}: " +
                             stringResource(if (item.needsMaterials) R.string.rd_yes else R.string.rd_no)
                     )
+
+                    if (attachments.isNotEmpty()) {
+                        Text(stringResource(R.string.rd_attachments), style = MaterialTheme.typography.titleMedium)
+                        attachments.forEach { attachment ->
+                            AsyncImage(
+                                model = Uri.parse(attachment.uri),
+                                contentDescription = stringResource(R.string.rd_photo_description),
+                                contentScale = ContentScale.Crop,
+                                modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+                            )
+                        }
+                    }
 
                     Spacer(Modifier.height(8.dp))
                     if (viewModel.isProvider) {

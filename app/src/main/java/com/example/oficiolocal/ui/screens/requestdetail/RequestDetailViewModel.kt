@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
+import com.example.oficiolocal.data.local.entity.MediaAttachmentEntity
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.map
@@ -17,6 +18,10 @@ class RequestDetailViewModel(private val requestId: String) : ViewModel() {
     val request: StateFlow<ServiceRequest?> = repository.requests
         .map { requests -> requests.find { it.id == requestId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)
+
+    val attachments: StateFlow<List<MediaAttachmentEntity>> =
+        ServiceLocator.mediaAttachmentRepository.observeForRequest(requestId)
+            .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     val isProvider: Boolean
         get() = ServiceLocator.authRepository.getCurrentUser()?.isProvider == true

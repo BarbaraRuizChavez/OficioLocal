@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.oficiolocal.data.local.AppDatabase
 import com.example.oficiolocal.data.repository.AuthRepository
 import com.example.oficiolocal.data.repository.FavoriteRepository
+import com.example.oficiolocal.data.repository.MediaAttachmentRepository
 import com.example.oficiolocal.data.repository.NotificationRepository
 import com.example.oficiolocal.data.repository.ProviderRepository
 import com.example.oficiolocal.data.repository.RemoteRepository
@@ -45,6 +46,9 @@ object ServiceLocator {
     val settingsRepository by lazy { SettingsRepository(applicationContext) }
     val notificationRepository by lazy {
         NotificationRepository(database.notificationDao(), applicationContext, settingsRepository)
+    }
+    val mediaAttachmentRepository by lazy {
+        MediaAttachmentRepository(database.mediaAttachmentDao(), applicationContext)
     }
 
     private val roomRequestRepository by lazy {

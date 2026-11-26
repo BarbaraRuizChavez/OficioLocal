@@ -1,5 +1,6 @@
 package com.example.oficiolocal.ui.screens.request
 
+import android.net.Uri
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -28,6 +29,7 @@ data class NewRequestUiState(
     val descriptionError: Boolean = false,
     val locationError: Boolean = false,
     val dateTimeError: Boolean = false,
+    val photoUri: String? = null,
     val sentId: String? = null
 )
 
@@ -56,6 +58,8 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     fun onUrgencyChange(value: Urgency) = _state.update { it.copy(urgency = value) }
 
     fun onNeedsMaterialsChange(value: Boolean) = _state.update { it.copy(needsMaterials = value) }
+
+    fun onPhotoSelected(uri: String?) = _state.update { it.copy(photoUri = uri) }
 
     fun onDateSelected(millis: Long) =
         _state.update { it.copy(dateMillis = millis, dateTimeError = false) }
@@ -101,6 +105,11 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     clientId = ServiceLocator.authRepository.getCurrentUser()?.id
                 )
             )
+            s.photoUri?.let { photoUri ->
+                runCatching {
+                    ServiceLocator.mediaAttachmentRepository.addPhotoToRequest(id, Uri.parse(photoUri))
+                }
+            }
             // Limpia el formulario y avisa que se envió.
             _state.value = NewRequestUiState(
                 providerName = s.providerName,

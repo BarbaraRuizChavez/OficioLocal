@@ -317,10 +317,12 @@ fun ProviderDetailScreen(
     LaunchedEffect(providerId) {
         provider = ServiceLocator.providerRepository.refreshOne(providerId) ?: provider
     }
+    // Captura el valor delegado para que Kotlin pueda hacer smart cast de forma segura.
+    val currentProvider = provider
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text(provider?.name ?: stringResource(R.string.provider_detail_title)) },
+                title = { Text(currentProvider?.name ?: stringResource(R.string.provider_detail_title)) },
                 navigationIcon = {
                     IconButton(onClick = onBackClick) {
                         Icon(
@@ -330,17 +332,21 @@ fun ProviderDetailScreen(
                     }
                 },
                 actions = {
-                    if (provider != null) {
+                    currentProvider?.let { selectedProvider ->
                         FavoriteButton(
                             isFavorite = isFavorite,
-                            onClick = { scope.launch { ServiceLocator.favoriteRepository.toggleFavorite(provider.id) } }
+                            onClick = {
+                                scope.launch {
+                                    ServiceLocator.favoriteRepository.toggleFavorite(selectedProvider.id)
+                                }
+                            }
                         )
                     }
                 }
             )
         }
     ) { paddingValues ->
-        if (provider == null) {
+        if (currentProvider == null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
@@ -364,12 +370,12 @@ fun ProviderDetailScreen(
                     verticalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     Text(
-                        text = provider.name,
+                        text = currentProvider.name,
                         style = MaterialTheme.typography.headlineSmall,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${localizedTradeName(provider.category)} · ${provider.location}",
+                        text = "${localizedTradeName(currentProvider.category)} · ${currentProvider.location}",
                         style = MaterialTheme.typography.titleMedium,
                         color = MaterialTheme.colorScheme.primary
                     )
@@ -381,7 +387,7 @@ fun ProviderDetailScreen(
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
-                            text = stringResource(R.string.provider_rating_reviews, provider.rating, provider.reviewCount),
+                            text = stringResource(R.string.provider_rating_reviews, currentProvider.rating, currentProvider.reviewCount),
                             style = MaterialTheme.typography.bodyLarge
                         )
                     }
@@ -391,46 +397,46 @@ fun ProviderDetailScreen(
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = provider.description, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = currentProvider.description, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         text = stringResource(R.string.provider_schedule_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = provider.schedule, style = MaterialTheme.typography.bodyMedium)
+                    Text(text = currentProvider.schedule, style = MaterialTheme.typography.bodyMedium)
                     Text(
                         text = stringResource(R.string.provider_price_title),
                         style = MaterialTheme.typography.titleSmall,
                         fontWeight = FontWeight.Bold
                     )
-                    Text(text = provider.priceRange, style = MaterialTheme.typography.bodyMedium)
-                    if (provider.services.isNotEmpty()) {
+                    Text(text = currentProvider.priceRange, style = MaterialTheme.typography.bodyMedium)
+                    if (currentProvider.services.isNotEmpty()) {
                         Text(
                             text = stringResource(R.string.provider_services_title),
                             style = MaterialTheme.typography.titleSmall,
                             fontWeight = FontWeight.Bold
                         )
-                        provider.services.forEach { service ->
+                        currentProvider.services.forEach { service ->
                             Text(text = "• $service", style = MaterialTheme.typography.bodyMedium)
                         }
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(
                         onClick = {
-                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${provider.phone}"))
+                            val intent = Intent(Intent.ACTION_DIAL, Uri.parse("tel:${currentProvider.phone}"))
                             openExternal(context, intent, noApp)
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = provider.phone.isNotBlank()
+                        enabled = currentProvider.phone.isNotBlank()
                     ) {
                         Icon(Icons.Default.Call, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text(stringResource(R.string.provider_call, provider.phone))
+                        Text(stringResource(R.string.provider_call, currentProvider.phone))
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(
                         onClick = {
-                            val query = Uri.encode("${provider.name}, ${provider.location}, Uriangato, Guanajuato")
+                            val query = Uri.encode("${currentProvider.name}, ${currentProvider.location}, Uriangato, Guanajuato")
                             openExternal(context, Intent(Intent.ACTION_VIEW, Uri.parse("geo:0,0?q=$query")), noApp)
                         },
                         modifier = Modifier.fillMaxWidth()
@@ -442,7 +448,7 @@ fun ProviderDetailScreen(
                     Spacer(modifier = Modifier.height(8.dp))
                     OutlinedButton(
                         onClick = {
-                            val number = "52" + provider.phone.filter { it.isDigit() }
+                            val number = "52" + currentProvider.phone.filter { it.isDigit() }
                             openExternal(
                                 context,
                                 Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$number")),
@@ -450,7 +456,7 @@ fun ProviderDetailScreen(
                             )
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = provider.phone.isNotBlank()
+                        enabled = currentProvider.phone.isNotBlank()
                     ) {
                         Icon(Icons.AutoMirrored.Filled.Chat, contentDescription = null)
                         Spacer(modifier = Modifier.width(8.dp))
@@ -464,7 +470,7 @@ fun ProviderDetailScreen(
                         Text(stringResource(R.string.request_service))
                     }
                     HorizontalDivider()
-                    ReviewsSection(providerId = provider.id)
+                    ReviewsSection(providerId = currentProvider.id)
                 }
             }
         }

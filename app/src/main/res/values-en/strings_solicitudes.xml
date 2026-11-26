@@ -17,4 +17,9 @@
     <string name="req_delete">Delete</string>
     <string name="req_delete_title">Delete request</string>
     <string name="req_delete_confirmation">Do you want to delete this request? This action cannot be undone.</string>
+    <string name="req_attach_photo">Attach photo</string>
+    <string name="req_remove_photo">Remove photo</string>
+    <string name="req_photo_preview">Attached photo preview</string>
+    <string name="rd_attachments">Attached photos</string>
+    <string name="rd_photo_description">Request photo</string>
 </resources>
