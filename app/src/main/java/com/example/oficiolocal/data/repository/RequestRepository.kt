@@ -30,7 +30,8 @@ class RoomRequestRepository(
     private val remote: RemoteRepository,
     private val scope: CoroutineScope,
     private val notifications: NotificationRepository,
-    private val auth: AuthRepository
+    private val auth: AuthRepository,
+    private val providers: ProviderRepository
 ) : RequestRepository {
 
     override val requests: Flow<List<ServiceRequest>> =
@@ -105,7 +106,9 @@ class RoomRequestRepository(
     override suspend fun refreshFromApi(): Boolean {
         val user = auth.getCurrentUser() ?: return false
         val userId = auth.getFirebaseUserId() ?: return false
-        val providerId = userId.takeIf { user.isProvider }
+        // Las solicitudes guardan el ID del perfil, no el UID de Firebase.
+        // ProviderRepository mantiene el mapeo del perfil usado al crear la solicitud.
+        val providerId = user.takeIf { it.isProvider }?.let(providers::providerIdFor)
         val remoteRequests = remote.getRequestsForUser(userId, providerId).getOrNull() ?: return false
         val entities = remoteRequests
             .filter { it.id.isNotBlank() }

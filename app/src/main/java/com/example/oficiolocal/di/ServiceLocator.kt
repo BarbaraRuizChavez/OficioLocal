@@ -62,7 +62,8 @@ object ServiceLocator {
             remoteRepository,
             appScope,
             notificationRepository,
-            authRepository
+            authRepository,
+            providerRepository
         )
     }
     val requestRepository: RequestRepository get() = roomRequestRepository
