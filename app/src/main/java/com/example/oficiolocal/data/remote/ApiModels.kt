@@ -34,7 +34,8 @@ data class RequestDto(
     val status: String? = null,
     val dateMillis: Long? = null,
     val hour: Int? = null,
-    val minute: Int? = null
+    val minute: Int? = null,
+    val clientId: String? = null
 )
 
 data class ReviewDto(
@@ -72,7 +73,8 @@ fun RequestDto.toDomain() = ServiceRequest(
     needsMaterials = needsMaterials ?: false,
     providerId = providerId,
     jobType = jobType?.let { runCatching { JobType.valueOf(it) }.getOrNull() },
-    location = location.orEmpty()
+    location = location.orEmpty(),
+    clientId = clientId
 )
 
 fun ReviewDto.toDomain() = Review(
@@ -104,5 +106,6 @@ fun ServiceRequest.toDto() = RequestDto(
     status = status.name,
     dateMillis = dateMillis,
     hour = hour,
-    minute = minute
+    minute = minute,
+    clientId = clientId
 )

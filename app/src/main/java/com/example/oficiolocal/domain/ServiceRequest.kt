@@ -37,5 +37,6 @@ data class ServiceRequest(
     val needsMaterials: Boolean = false,
     val providerId: String? = null,
     val jobType: JobType? = null,
-    val location: String = ""
+    val location: String = "",
+    val clientId: String? = null
 )

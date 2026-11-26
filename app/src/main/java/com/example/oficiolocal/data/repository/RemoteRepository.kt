@@ -111,7 +111,8 @@ private fun ServiceRequest.toMap() = mapOf(
     "providerId" to providerId, "providerName" to providerName, "jobType" to jobType?.name,
     "description" to description, "location" to location, "urgency" to urgency.name,
     "needsMaterials" to needsMaterials, "status" to status.name,
-    "dateMillis" to dateMillis, "hour" to hour, "minute" to minute
+    "dateMillis" to dateMillis, "hour" to hour, "minute" to minute,
+    "clientId" to clientId
 )
 
 private fun DocumentSnapshot.toRequest() = ServiceRequest(
@@ -126,7 +127,8 @@ private fun DocumentSnapshot.toRequest() = ServiceRequest(
     needsMaterials = getBoolean("needsMaterials") ?: false,
     providerId = getString("providerId"),
     jobType = getString("jobType")?.let { runCatching { JobType.valueOf(it) }.getOrNull() },
-    location = getString("location").orEmpty()
+    location = getString("location").orEmpty(),
+    clientId = getString("clientId")
 )
 
 private fun Review.toMap() = mapOf(

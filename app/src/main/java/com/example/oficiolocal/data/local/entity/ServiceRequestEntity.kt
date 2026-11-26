@@ -22,7 +22,8 @@ data class ServiceRequestEntity(
     val hour: Int?,
     val minute: Int?,
     val remoteId: String? = null, // id que le asigna la API; null = aún no se envía
-    val createdAt: Long = System.currentTimeMillis()
+    val createdAt: Long = System.currentTimeMillis(),
+    val clientId: String? = null
 )
 
 fun ServiceRequestEntity.toDomain() = ServiceRequest(
@@ -37,7 +38,8 @@ fun ServiceRequestEntity.toDomain() = ServiceRequest(
     needsMaterials = needsMaterials,
     providerId = providerId,
     jobType = jobType?.let { runCatching { JobType.valueOf(it) }.getOrNull() },
-    location = location
+    location = location,
+    clientId = clientId
 )
 
 fun ServiceRequest.toEntity() = ServiceRequestEntity(
@@ -52,5 +54,6 @@ fun ServiceRequest.toEntity() = ServiceRequestEntity(
     status = status.name,
     dateMillis = dateMillis,
     hour = hour,
-    minute = minute
+    minute = minute,
+    clientId = clientId
 )

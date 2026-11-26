@@ -97,7 +97,8 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     status = RequestStatus.PENDING, // CAMBIO
                     dateMillis = s.dateMillis,
                     hour = s.hour,
-                    minute = s.minute
+                    minute = s.minute,
+                    clientId = ServiceLocator.authRepository.getCurrentUser()?.id
                 )
             )
             // Limpia el formulario y avisa que se envió.
