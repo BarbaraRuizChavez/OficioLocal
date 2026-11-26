@@ -78,9 +78,11 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    val showMenu = navItems.any { it.route == currentRoute }
+    // En pantalla ancha el menú lateral también se ve en el detalle del prestador.
+    val onProviderDetail = currentRoute == Routes.PROVIDER_DETAIL
     // Pantallas anchas (tableta): riel lateral. Pantallas compactas: barra inferior.
     val isWide = widthSizeClass != WindowWidthSizeClass.Compact
+    val showMenu = navItems.any { it.route == currentRoute } || (isWide && onProviderDetail)
     val offline by ServiceLocator.settingsRepository.offline.collectAsState()
 
     // Estado del formulario de Solicitudes en pantalla ancha (vive aquí para sobrevivir a la rotación).
@@ -121,7 +123,8 @@ fun AppNavGraph(
                 NavigationRail {
                     navItems.forEach { item ->
                         NavigationRailItem(
-                            selected = currentRoute == item.route,
+                            selected = currentRoute == item.route ||
+                                    (item.route == Routes.HOME && onProviderDetail),
                             onClick = { goTo(item.route) },
                             icon = { Icon(item.icon, contentDescription = null) },
                             label = { Text(stringResource(item.label)) }

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items as gridItems
 import androidx.compose.foundation.lazy.items
@@ -27,7 +28,6 @@ import androidx.compose.material.icons.filled.Star
 import androidx.compose.material3.*
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.*
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -37,11 +37,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
-import androidx.lifecycle.viewmodel.initializer
-import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.oficiolocal.R
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.Provider
@@ -51,8 +48,6 @@ import com.example.oficiolocal.ui.components.categoryStyle
 import com.example.oficiolocal.ui.components.ReviewsSection
 import com.example.oficiolocal.ui.components.isAvailableToday
 import com.example.oficiolocal.ui.components.maxPriceOf
-import com.example.oficiolocal.ui.screens.request.NewRequestScreen
-import com.example.oficiolocal.ui.screens.request.NewRequestViewModel
 import kotlinx.coroutines.launch
 
 class DirectoryViewModel : ViewModel() {
@@ -128,83 +123,13 @@ fun ProviderListScreen(
     onNotificationsClick: () -> Unit,
     viewModel: DirectoryViewModel = viewModel()
 ) {
-    val twoPane = widthSizeClass == WindowWidthSizeClass.Expanded
-    var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
-    // Id del prestador para el que se está llenando el formulario en el panel derecho.
-    var requestingId by rememberSaveable { mutableStateOf<String?>(null) }
-
-    val detailId = selectedId
-    val formId = requestingId
-
-    if (twoPane && detailId != null && formId != null) {
-        // Tres columnas: riel (lo dibuja AppNavGraph) | info del prestador | formulario.
-        Row(modifier = Modifier.fillMaxSize()) {
-            Box(modifier = Modifier.weight(0.5f)) {
-                key(detailId) {
-                    ProviderDetailScreen(
-                        providerId = detailId,
-                        onBackClick = {
-                            requestingId = null
-                            selectedId = null
-                        },
-                        onRequestClick = { requestingId = detailId }
-                    )
-                }
-            }
-            VerticalDivider()
-            Box(modifier = Modifier.weight(0.5f)) {
-                key(formId) {
-                    val formViewModel: NewRequestViewModel = viewModel(
-                        key = "new_request_$formId",
-                        factory = viewModelFactory {
-                            initializer {
-                                NewRequestViewModel(SavedStateHandle(mapOf("providerId" to formId)))
-                            }
-                        }
-                    )
-                    NewRequestScreen(
-                        onBackClick = { requestingId = null },
-                        viewModel = formViewModel
-                    )
-                }
-            }
-        }
-        return
-    }
-
-    Row(modifier = Modifier.fillMaxSize()) {
-        Box(modifier = Modifier.weight(if (twoPane) 0.4f else 1f)) {
-            DirectoryList(
-                viewModel = viewModel,
-                onProviderClick = { id ->
-                    if (twoPane) {
-                        selectedId = id
-                        requestingId = null
-                    } else onProviderClick(id)
-                },
-                onNotificationsClick = onNotificationsClick
-            )
-        }
-        if (twoPane) {
-            Box(modifier = Modifier.weight(0.6f)) {
-                val id = selectedId
-                if (id == null) {
-                    Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(stringResource(R.string.directory_select_hint))
-                    }
-                } else {
-                    key(id) {
-                        ProviderDetailScreen(
-                            providerId = id,
-                            onBackClick = { selectedId = null },
-                            // En pantalla ancha el formulario se abre en el panel derecho.
-                            onRequestClick = { requestingId = id }
-                        )
-                    }
-                }
-            }
-        }
-    }
+    // El directorio siempre ocupa toda la pantalla. Al elegir un prestador se navega a su detalle
+    // (en horizontal, AppNavGraph mantiene el menú lateral visible).
+    DirectoryList(
+        viewModel = viewModel,
+        onProviderClick = onProviderClick,
+        onNotificationsClick = onNotificationsClick
+    )
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -239,124 +164,130 @@ private fun DirectoryList(
             )
         }
     ) { paddingValues ->
-        Column(
+        // Todo (buscador, filtros y prestadores) va dentro de la misma cuadrícula,
+        // así que toda la pantalla se desplaza junta.
+        LazyVerticalGrid(
+            columns = GridCells.Adaptive(minSize = 320.dp),
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            OutlinedTextField(
-                value = viewModel.searchQuery,
-                onValueChange = { viewModel.onSearchQueryChange(it) },
-                modifier = Modifier.fillMaxWidth(),
-                placeholder = { Text(stringResource(R.string.directory_search_hint)) },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Search,
-                        contentDescription = stringResource(R.string.directory_search)
-                    )
-                },
-                singleLine = true
-            )
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                OutlinedTextField(
+                    value = viewModel.searchQuery,
+                    onValueChange = { viewModel.onSearchQueryChange(it) },
+                    modifier = Modifier.fillMaxWidth(),
+                    placeholder = { Text(stringResource(R.string.directory_search_hint)) },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Search,
+                            contentDescription = stringResource(R.string.directory_search)
+                        )
+                    },
+                    singleLine = true
+                )
+            }
 
-            Spacer(modifier = Modifier.height(12.dp))
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                items(viewModel.categories) { category ->
-                    FilterChip(
-                        selected = viewModel.selectedCategory == category,
-                        onClick = { viewModel.onCategorySelected(category) },
-                        label = { Text(localizedTradeName(category)) }
-                    )
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    items(viewModel.categories) { category ->
+                        FilterChip(
+                            selected = viewModel.selectedCategory == category,
+                            onClick = { viewModel.onCategorySelected(category) },
+                            label = { Text(localizedTradeName(category)) }
+                        )
+                    }
                 }
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
-
-            LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                item {
-                    FilterChip(
-                        selected = viewModel.onlyToday,
-                        onClick = { viewModel.onToggleToday() },
-                        label = { Text(stringResource(R.string.filter_today)) }
-                    )
-                }
-                item {
-                    FilterChip(
-                        selected = viewModel.maxPrice == 500,
-                        onClick = { viewModel.onMaxPriceSelected(500) },
-                        label = { Text(stringResource(R.string.filter_price_500)) }
-                    )
-                }
-                item {
-                    FilterChip(
-                        selected = viewModel.maxPrice == 1000,
-                        onClick = { viewModel.onMaxPriceSelected(1000) },
-                        label = { Text(stringResource(R.string.filter_price_1000)) }
-                    )
+            item(span = { GridItemSpan(maxLineSpan) }) {
+                LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    item {
+                        FilterChip(
+                            selected = viewModel.onlyToday,
+                            onClick = { viewModel.onToggleToday() },
+                            label = { Text(stringResource(R.string.filter_today)) }
+                        )
+                    }
+                    item {
+                        FilterChip(
+                            selected = viewModel.maxPrice == 500,
+                            onClick = { viewModel.onMaxPriceSelected(500) },
+                            label = { Text(stringResource(R.string.filter_price_500)) }
+                        )
+                    }
+                    item {
+                        FilterChip(
+                            selected = viewModel.maxPrice == 1000,
+                            onClick = { viewModel.onMaxPriceSelected(1000) },
+                            label = { Text(stringResource(R.string.filter_price_1000)) }
+                        )
+                    }
                 }
             }
-
-            Spacer(modifier = Modifier.height(16.dp))
 
             if (viewModel.providersList.isEmpty()) {
-                Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                    Text(stringResource(R.string.directory_empty))
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 48.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(stringResource(R.string.directory_empty))
+                    }
                 }
             } else {
-                LazyVerticalGrid(
-                    columns = GridCells.Adaptive(minSize = 320.dp),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    gridItems(viewModel.providersList) { provider ->
-                        Card(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { onProviderClick(provider.id) },
-                            elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                gridItems(viewModel.providersList) { provider ->
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onProviderClick(provider.id) },
+                        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+                    ) {
+                        Row(
+                            modifier = Modifier.padding(14.dp),
+                            verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Row(
-                                modifier = Modifier.padding(14.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                ProviderAvatar(category = provider.category, size = 60.dp)
-                                Spacer(modifier = Modifier.width(14.dp))
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = provider.name,
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.Bold
+                            ProviderAvatar(category = provider.category, size = 60.dp)
+                            Spacer(modifier = Modifier.width(14.dp))
+                            Column(modifier = Modifier.weight(1f)) {
+                                Row(
+                                    modifier = Modifier.fillMaxWidth(),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(
+                                        text = provider.name,
+                                        style = MaterialTheme.typography.titleMedium,
+                                        fontWeight = FontWeight.Bold
+                                    )
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(
+                                            imageVector = Icons.Default.Star,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.primary,
+                                            modifier = Modifier.size(18.dp)
                                         )
-                                        Row(verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(
-                                                imageVector = Icons.Default.Star,
-                                                contentDescription = null,
-                                                tint = MaterialTheme.colorScheme.primary,
-                                                modifier = Modifier.size(18.dp)
-                                            )
-                                            Spacer(modifier = Modifier.width(4.dp))
-                                            Text(text = "${provider.rating} (${provider.reviewCount})")
-                                        }
+                                        Spacer(modifier = Modifier.width(4.dp))
+                                        Text(text = "${provider.rating} (${provider.reviewCount})")
                                     }
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = "${localizedTradeName(provider.category)} · ${provider.location}",
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                    Spacer(modifier = Modifier.height(4.dp))
-                                    Text(
-                                        text = stringResource(R.string.provider_price_label, provider.priceRange),
-                                        style = MaterialTheme.typography.bodySmall
-                                    )
                                 }
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = "${localizedTradeName(provider.category)} · ${provider.location}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                                Spacer(modifier = Modifier.height(4.dp))
+                                Text(
+                                    text = stringResource(R.string.provider_price_label, provider.priceRange),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                     }
