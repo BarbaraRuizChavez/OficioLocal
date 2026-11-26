@@ -63,9 +63,11 @@
     <string name="form_sent">Request %1$s sent</string>
     <string name="form_for_provider">Request for %1$s</string>
     <string name="form_any_provider">Request for any provider</string>
+    <string name="form_select_provider">Select a provider</string>
     <string name="err_description">Enter a description</string>
     <string name="err_location">Enter where the service will take place</string>
     <string name="err_datetime">Choose a date and time</string>
+    <string name="err_provider_required">Select a provider to continue</string>
 
     <!-- Request tracking -->
     <string name="tracking_title">My requests</string>

@@ -24,6 +24,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Button
 import androidx.compose.material3.Checkbox
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -85,6 +87,7 @@ fun NewRequestScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     var showDatePicker by remember { mutableStateOf(false) }
     var showTimePicker by remember { mutableStateOf(false) }
+    var providerMenuExpanded by remember { mutableStateOf(false) }
 
     val sentMessage = state.sentId?.let { stringResource(R.string.form_sent, it) }
     LaunchedEffect(state.sentId) {
@@ -123,12 +126,35 @@ fun NewRequestScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Text(
-                    text = state.providerName
-                        ?.let { stringResource(R.string.form_for_provider, it) }
-                        ?: stringResource(R.string.form_any_provider),
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Text(stringResource(R.string.form_select_provider), style = MaterialTheme.typography.titleMedium)
+                Box {
+                    OutlinedButton(
+                        onClick = { providerMenuExpanded = true },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(state.providerName ?: stringResource(R.string.form_select_provider))
+                    }
+                    DropdownMenu(
+                        expanded = providerMenuExpanded,
+                        onDismissRequest = { providerMenuExpanded = false }
+                    ) {
+                        state.availableProviders.forEach { option ->
+                            DropdownMenuItem(
+                                text = { Text(option.name) },
+                                onClick = {
+                                    viewModel.onProviderSelected(option)
+                                    providerMenuExpanded = false
+                                }
+                            )
+                        }
+                    }
+                }
+                if (state.providerError) {
+                    Text(
+                        text = stringResource(R.string.err_provider_required),
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
 
                 // Tipo de trabajo: radios
                 Text(stringResource(R.string.form_job_type), style = MaterialTheme.typography.labelLarge)

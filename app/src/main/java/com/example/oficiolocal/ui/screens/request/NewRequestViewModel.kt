@@ -6,6 +6,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.JobType
+import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
 import com.example.oficiolocal.domain.Urgency
@@ -17,7 +18,9 @@ import kotlinx.coroutines.launch
 import java.util.UUID
 
 data class NewRequestUiState(
+    val providerId: String? = null,
     val providerName: String? = null,
+    val availableProviders: List<Provider> = emptyList(),
     val jobType: JobType = JobType.PLUMBING,
     val description: String = "",
     val location: String = "",
@@ -29,6 +32,7 @@ data class NewRequestUiState(
     val descriptionError: Boolean = false,
     val locationError: Boolean = false,
     val dateTimeError: Boolean = false,
+    val providerError: Boolean = false,
     val photoUri: String? = null,
     val sentId: String? = null
 )
@@ -38,16 +42,31 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
     // Viene de la ruta; es nulo si la solicitud no se hizo desde el detalle de un prestador.
     private val providerId: String? = savedStateHandle.get<String>("providerId")
     private val provider = providerId?.let { ServiceLocator.providerRepository.getProviderById(it) }
+    private val availableProviders = ServiceLocator.providerRepository.getProviders()
 
     private val initialJobType =
         JobType.fromCategory(provider?.category) ?: JobType.PLUMBING // CAMBIO
 
     private val _state = MutableStateFlow(
-        NewRequestUiState(providerName = provider?.name, jobType = initialJobType)
+        NewRequestUiState(
+            providerId = provider?.id,
+            providerName = provider?.name,
+            availableProviders = availableProviders,
+            jobType = initialJobType
+        )
     )
     val state: StateFlow<NewRequestUiState> = _state.asStateFlow()
 
     fun onJobTypeChange(value: JobType) = _state.update { it.copy(jobType = value) }
+
+    fun onProviderSelected(value: Provider) = _state.update {
+        it.copy(
+            providerId = value.id,
+            providerName = value.name,
+            jobType = JobType.fromCategory(value.category) ?: it.jobType,
+            providerError = false
+        )
+    }
 
     fun onDescriptionChange(value: String) =
         _state.update { it.copy(description = value, descriptionError = false) }
@@ -74,13 +93,15 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
         val descriptionError = s.description.isBlank()
         val locationError = s.location.isBlank()
         val dateTimeError = s.dateMillis == null || s.hour == null || s.minute == null
+        val providerError = s.providerId == null
 
-        if (descriptionError || locationError || dateTimeError) {
+        if (descriptionError || locationError || dateTimeError || providerError) {
             _state.update {
                 it.copy(
                     descriptionError = descriptionError,
                     locationError = locationError,
-                    dateTimeError = dateTimeError
+                    dateTimeError = dateTimeError,
+                    providerError = providerError
                 )
             }
             return
@@ -91,7 +112,7 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             ServiceLocator.requestRepository.add(
                 ServiceRequest(
                     id = id,
-                    providerId = providerId,
+                    providerId = s.providerId,
                     providerName = s.providerName ?: "", // CAMBIO
                     jobType = s.jobType,
                     description = s.description.trim(),
@@ -113,7 +134,9 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
             }
             // Limpia el formulario y avisa que se envió.
             _state.value = NewRequestUiState(
+                providerId = s.providerId,
                 providerName = s.providerName,
+                availableProviders = s.availableProviders,
                 jobType = initialJobType,
                 sentId = id
             )

@@ -15,20 +15,23 @@ import kotlinx.coroutines.launch
 
 class MyRequestsViewModel : ViewModel() {
     private val repository = ServiceLocator.requestRepository
+    private val authRepository = ServiceLocator.authRepository
 
     private val _selected = MutableStateFlow<RequestStatus?>(null)
     val selected: StateFlow<RequestStatus?> = _selected.asStateFlow()
 
     val requests: StateFlow<List<ServiceRequest>> =
-        combine(repository.requests, _selected) { list, status ->
-            val user = ServiceLocator.authRepository.getCurrentUser()
+        combine(repository.requests, _selected, authRepository.currentUser) { list, status, user ->
             val ownedRequests = when {
-                user == null -> list
+                user == null -> emptyList()
                 user.isProvider -> {
                     val providerId = ServiceLocator.providerRepository.providerIdFor(user)
                     list.filter { it.providerId == providerId }
                 }
-                else -> list.filter { it.clientId == user.id || it.clientId == null }
+                else -> {
+                    val clientId = authRepository.getFirebaseUserId() ?: user.id
+                    list.filter { it.clientId == clientId }
+                }
             }
             if (status == null) ownedRequests else ownedRequests.filter { it.status == status }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
