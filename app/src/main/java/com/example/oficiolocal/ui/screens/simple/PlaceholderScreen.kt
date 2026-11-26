@@ -411,7 +411,11 @@ fun ProviderDetailScreen(
                     OutlinedButton(
                         onClick = {
                             val number = "52" + provider.phone.filter { it.isDigit() }
-                            openExternal(context, Intent(Intent.ACTION_VIEW, Uri.parse("wa.me")), noApp)
+                            openExternal(
+                                context,
+                                Intent(Intent.ACTION_VIEW, Uri.parse("https://wa.me/$number")),
+                                noApp
+                            )
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = provider.phone.isNotBlank()

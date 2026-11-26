@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="provider_map">View on map</string>
+    <string name="provider_whatsapp">Message on WhatsApp</string>
+    <string name="provider_no_app">No app is available to open this</string>
+    <string name="filter_today">Available today</string>
+    <string name="filter_price_500">Up to $500</string>
+    <string name="filter_price_1000">Up to $1000</string>
+</resources>

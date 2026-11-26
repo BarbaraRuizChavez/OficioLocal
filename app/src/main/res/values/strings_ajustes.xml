@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="provider_map" translatable="false">Ver en el mapa</string>
-    <string name="provider_whatsapp" translatable="false">Escribir por WhatsApp</string>
-    <string name="provider_no_app" translatable="false">No hay una app para abrir esto</string>
-    <string name="filter_today" translatable="false">Disponible hoy</string>
-    <string name="filter_price_500" translatable="false">Hasta $500</string>
-    <string name="filter_price_1000" translatable="false">Hasta $1000</string>
+    <string name="provider_map">Ver en el mapa</string>
+    <string name="provider_whatsapp">Escribir por WhatsApp</string>
+    <string name="provider_no_app">No hay una app para abrir esto</string>
+    <string name="filter_today">Disponible hoy</string>
+    <string name="filter_price_500">Hasta $500</string>
+    <string name="filter_price_1000">Hasta $1000</string>
 </resources>
