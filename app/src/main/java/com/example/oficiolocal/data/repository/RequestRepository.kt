@@ -63,8 +63,12 @@ class RoomRequestRepository(
         notifications.requestStatusChanged(id, status)
         scope.launch {
             val entity = dao.getById(id) ?: return@launch
-            val remoteId = entity.remoteId ?: return@launch
-            remote.updateRequest(entity.toDomain().copy(id = remoteId))
+            val remoteId = entity.remoteId
+            if (remoteId == null) {
+                sendToApi(id)
+            } else {
+                remote.updateRequest(entity.toDomain().copy(id = remoteId))
+            }
         }
     }
 
@@ -73,8 +77,12 @@ class RoomRequestRepository(
         notifications.requestStatusChanged(id, RequestStatus.CANCELLED)
         scope.launch {
             val entity = dao.getById(id) ?: return@launch
-            val remoteId = entity.remoteId ?: return@launch // si aún no se envió, se manda ya cancelada
-            remote.updateRequest(entity.toDomain().copy(id = remoteId))
+            val remoteId = entity.remoteId
+            if (remoteId == null) {
+                sendToApi(id) // si todavía no se había enviado, se crea ya con el estado cancelado
+            } else {
+                remote.updateRequest(entity.toDomain().copy(id = remoteId))
+            }
         }
     }
 

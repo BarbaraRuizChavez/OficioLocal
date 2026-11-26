@@ -58,7 +58,7 @@ internal fun formatRequestDate(millis: Long): String {
 }
 
 @Composable
-private fun statusLabel(status: RequestStatus): String = stringResource(
+internal fun statusLabel(status: RequestStatus): String = stringResource(
     when (status) {
         RequestStatus.PENDING -> R.string.req_status_pending
         RequestStatus.ACCEPTED -> R.string.req_status_accepted
@@ -79,6 +79,7 @@ internal fun urgencyLabel(urgency: Urgency): String = stringResource(
 @Composable
 fun MyRequestsScreen(
     onNewRequest: () -> Unit,
+    onRequestClick: (String) -> Unit,
     viewModel: MyRequestsViewModel = viewModel()
 ) {
     val requests by viewModel.requests.collectAsState()
@@ -138,6 +139,7 @@ fun MyRequestsScreen(
                     items(requests, key = { it.id }) { request ->
                         RequestCard(
                             request = request,
+                            onClick = { onRequestClick(request.id) },
                             onEdit = {
                                 requestToEdit = request
                                 editDescription = request.description
@@ -315,11 +317,15 @@ fun MyRequestsScreen(
 @Composable
 private fun RequestCard(
     request: ServiceRequest,
+    onClick: () -> Unit,
     onEdit: () -> Unit,
     onCancel: () -> Unit,
     onDelete: () -> Unit
 ) {
-    Card(modifier = Modifier.fillMaxWidth()) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth()
+    ) {
         Column(
             modifier = Modifier.padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)

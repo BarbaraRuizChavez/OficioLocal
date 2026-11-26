@@ -14,4 +14,17 @@
     <string name="pp_saving">Saving...</string>
     <string name="pp_saved_cloud">Profile saved and synced</string>
     <string name="pp_saved_local">Profile saved locally; sync is pending</string>
+    <string name="rd_title">Request details</string>
+    <string name="rd_accept">Accept request</string>
+    <string name="rd_reject">Reject request</string>
+    <string name="rd_complete">Mark as completed</string>
+    <string name="rd_not_found">Request not found</string>
+    <string name="rd_status">Status</string>
+    <string name="rd_urgency">Urgency</string>
+    <string name="rd_description">Description</string>
+    <string name="rd_location">Location</string>
+    <string name="rd_date">Date and time</string>
+    <string name="rd_materials">Requires materials</string>
+    <string name="rd_yes">Yes</string>
+    <string name="rd_no">No</string>
 </resources>

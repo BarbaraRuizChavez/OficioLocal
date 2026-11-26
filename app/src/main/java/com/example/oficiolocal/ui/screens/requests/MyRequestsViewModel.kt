@@ -21,7 +21,16 @@ class MyRequestsViewModel : ViewModel() {
 
     val requests: StateFlow<List<ServiceRequest>> =
         combine(repository.requests, _selected) { list, status ->
-            if (status == null) list else list.filter { it.status == status }
+            val user = ServiceLocator.authRepository.getCurrentUser()
+            val ownedRequests = when {
+                user == null -> list
+                user.isProvider -> {
+                    val providerId = ServiceLocator.providerRepository.providerIdFor(user)
+                    list.filter { it.providerId == providerId }
+                }
+                else -> list.filter { it.clientId == user.id || it.clientId == null }
+            }
+            if (status == null) ownedRequests else ownedRequests.filter { it.status == status }
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     fun onFilterSelected(status: RequestStatus?) {

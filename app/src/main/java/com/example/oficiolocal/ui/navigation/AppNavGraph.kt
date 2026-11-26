@@ -46,6 +46,7 @@ import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
 import com.example.oficiolocal.ui.screens.request.NewRequestScreen
+import com.example.oficiolocal.ui.screens.requestdetail.RequestDetailScreen
 
 private data class NavItem(
     @StringRes val label: Int,
@@ -170,7 +171,20 @@ fun AppNavGraph(
 
                     composable(Routes.REQUESTS) {
                         MyRequestsScreen(
-                            onNewRequest = { navController.navigate(Routes.NEW_REQUEST) }
+                            onNewRequest = { navController.navigate(Routes.NEW_REQUEST) },
+                            onRequestClick = { requestId ->
+                                navController.navigate(Routes.buildRequestDetailRoute(requestId))
+                            }
+                        )
+                    }
+
+                    composable(
+                        route = Routes.REQUEST_DETAIL,
+                        arguments = listOf(navArgument("requestId") { type = NavType.StringType })
+                    ) { entry ->
+                        RequestDetailScreen(
+                            requestId = entry.arguments?.getString("requestId").orEmpty(),
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
 

@@ -14,4 +14,17 @@
     <string name="pp_saving">Guardando...</string>
     <string name="pp_saved_cloud">Perfil guardado y sincronizado</string>
     <string name="pp_saved_local">Perfil guardado localmente; sincronización pendiente</string>
+    <string name="rd_title">Detalle de la solicitud</string>
+    <string name="rd_accept">Aceptar solicitud</string>
+    <string name="rd_reject">Rechazar solicitud</string>
+    <string name="rd_complete">Marcar como completada</string>
+    <string name="rd_not_found">No se encontró la solicitud</string>
+    <string name="rd_status">Estado</string>
+    <string name="rd_urgency">Urgencia</string>
+    <string name="rd_description">Descripción</string>
+    <string name="rd_location">Ubicación</string>
+    <string name="rd_date">Fecha y hora</string>
+    <string name="rd_materials">Requiere materiales</string>
+    <string name="rd_yes">Sí</string>
+    <string name="rd_no">No</string>
 </resources>
