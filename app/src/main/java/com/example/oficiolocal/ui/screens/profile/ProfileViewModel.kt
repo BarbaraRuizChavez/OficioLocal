@@ -36,5 +36,7 @@ class ProfileViewModel : ViewModel() {
         }
     }
 
-    fun logout() = authRepository.logout()
+    fun logout() {
+        viewModelScope.launch { authRepository.logout() }
+    }
 }

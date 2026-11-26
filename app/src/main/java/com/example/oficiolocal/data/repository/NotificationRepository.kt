@@ -39,6 +39,22 @@ class NotificationRepository(
         )
     }
 
+    suspend fun receivePush(id: String, title: String, message: String, requestId: String?) {
+        dao.upsert(
+            NotificationEntity(
+                id = id,
+                title = title,
+                message = message,
+                category = "REQUEST",
+                relatedRequestId = requestId,
+                pendingSync = false
+            )
+        )
+        if (settings.notificationsEnabled) {
+            NotificationHelper.show(context, id.hashCode(), title, message)
+        }
+    }
+
     suspend fun markAllRead() = dao.markAllRead()
     suspend fun clear() = dao.deleteAll()
 

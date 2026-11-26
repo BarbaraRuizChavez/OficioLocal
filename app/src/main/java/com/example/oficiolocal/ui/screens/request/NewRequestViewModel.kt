@@ -102,7 +102,8 @@ class NewRequestViewModel(savedStateHandle: SavedStateHandle) : ViewModel() {
                     dateMillis = s.dateMillis,
                     hour = s.hour,
                     minute = s.minute,
-                    clientId = ServiceLocator.authRepository.getCurrentUser()?.id
+                    clientId = ServiceLocator.authRepository.getFirebaseUserId()
+                        ?: ServiceLocator.authRepository.getCurrentUser()?.id
                 )
             )
             s.photoUri?.let { photoUri ->

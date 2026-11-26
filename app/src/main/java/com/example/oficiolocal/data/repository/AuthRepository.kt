@@ -79,6 +79,7 @@ class AuthRepository(
                 userDao.insert(local)
             }
             _currentUser.value = local.toDomain()
+            runCatching { PushTokenRepository.syncCurrentUserToken() }
             return true
         }
 
@@ -126,6 +127,7 @@ class AuthRepository(
         )
         userDao.insert(user)
         _currentUser.value = user.toDomain()
+        if (uid != null) runCatching { PushTokenRepository.syncCurrentUserToken() }
         return true
     }
 
@@ -153,12 +155,15 @@ class AuthRepository(
         return true
     }
 
-    fun logout() {
+    suspend fun logout() {
+        runCatching { PushTokenRepository.removeCurrentUserToken() }
         firebaseAuth.signOut()
         _currentUser.value = null
     }
 
     fun getCurrentUser(): User? = _currentUser.value
+
+    fun getFirebaseUserId(): String? = firebaseAuth.currentUser?.uid
 
     fun isLoggedIn(): Boolean = _currentUser.value != null
 

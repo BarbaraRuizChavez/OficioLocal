@@ -7,6 +7,7 @@ import com.example.oficiolocal.data.repository.FavoriteRepository
 import com.example.oficiolocal.data.repository.MediaAttachmentRepository
 import com.example.oficiolocal.data.repository.NotificationRepository
 import com.example.oficiolocal.data.repository.ProviderRepository
+import com.example.oficiolocal.data.repository.PushTokenRepository
 import com.example.oficiolocal.data.repository.RemoteRepository
 import com.example.oficiolocal.data.repository.RequestRepository
 import com.example.oficiolocal.data.repository.ReviewRepository
@@ -35,6 +36,7 @@ object ServiceLocator {
             runCatching { reviewRepository.syncPending() }
             runCatching { reviewRepository.refreshFromApi() }
             runCatching { mediaAttachmentRepository.syncPendingUploads() }
+            runCatching { PushTokenRepository.syncCurrentUserToken() }
         }
     }
 
