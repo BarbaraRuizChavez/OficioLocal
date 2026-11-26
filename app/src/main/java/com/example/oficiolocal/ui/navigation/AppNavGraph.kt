@@ -2,6 +2,7 @@ package com.example.oficiolocal.ui.navigation
 
 import androidx.annotation.StringRes
 import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -21,14 +22,21 @@ import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.VerticalDivider
 import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
@@ -46,6 +54,7 @@ import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
 import com.example.oficiolocal.ui.screens.request.NewRequestScreen
+import com.example.oficiolocal.ui.screens.request.NewRequestViewModel
 import com.example.oficiolocal.ui.screens.requestdetail.RequestDetailScreen
 
 private data class NavItem(
@@ -73,6 +82,11 @@ fun AppNavGraph(
     // Pantallas anchas (tableta): riel lateral. Pantallas compactas: barra inferior.
     val isWide = widthSizeClass != WindowWidthSizeClass.Compact
     val offline by ServiceLocator.settingsRepository.offline.collectAsState()
+
+    // Estado del formulario de Solicitudes en pantalla ancha (vive aquí para sobrevivir a la rotación).
+    var requestsFormOpen by rememberSaveable { mutableStateOf(false) }
+    // Cambia cada vez que se abre, para que el formulario empiece vacío.
+    var requestsFormKey by rememberSaveable { mutableIntStateOf(0) }
 
     fun goTo(route: String) {
         navController.navigate(route) {
@@ -170,12 +184,51 @@ fun AppNavGraph(
                     }
 
                     composable(Routes.REQUESTS) {
-                        MyRequestsScreen(
-                            onNewRequest = { navController.navigate(Routes.NEW_REQUEST) },
-                            onRequestClick = { requestId ->
-                                navController.navigate(Routes.buildRequestDetailRoute(requestId))
+                        // Si el formulario estaba abierto a la derecha y se gira a vertical,
+                        // se muestra como pantalla completa.
+                        LaunchedEffect(isWide, requestsFormOpen) {
+                            if (!isWide && requestsFormOpen) {
+                                requestsFormOpen = false
+                                navController.navigate(Routes.NEW_REQUEST)
                             }
-                        )
+                        }
+
+                        if (isWide && requestsFormOpen) {
+                            // Riel (izquierda) | Mis solicitudes (centro) | Formulario (derecha)
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.weight(1f)) {
+                                    MyRequestsScreen(
+                                        onNewRequest = { },
+                                        onRequestClick = { requestId ->
+                                            navController.navigate(Routes.buildRequestDetailRoute(requestId))
+                                        }
+                                    )
+                                }
+                                VerticalDivider()
+                                Box(modifier = Modifier.weight(1f)) {
+                                    val formViewModel: NewRequestViewModel =
+                                        viewModel(key = "new_request_pane_$requestsFormKey")
+                                    NewRequestScreen(
+                                        onBackClick = { requestsFormOpen = false },
+                                        viewModel = formViewModel
+                                    )
+                                }
+                            }
+                        } else {
+                            MyRequestsScreen(
+                                onNewRequest = {
+                                    if (isWide) {
+                                        requestsFormKey++
+                                        requestsFormOpen = true
+                                    } else {
+                                        navController.navigate(Routes.NEW_REQUEST)
+                                    }
+                                },
+                                onRequestClick = { requestId ->
+                                    navController.navigate(Routes.buildRequestDetailRoute(requestId))
+                                }
+                            )
+                        }
                     }
 
                     composable(
@@ -189,9 +242,19 @@ fun AppNavGraph(
                     }
 
                     composable(Routes.NEW_REQUEST) {
-                        NewRequestScreen(
-                            onBackClick = { navController.popBackStack() }
-                        )
+                        if (isWide) {
+                            // Se giró a horizontal con el formulario abierto: regresar a Solicitudes
+                            // y mostrarlo en el panel derecho.
+                            LaunchedEffect(Unit) {
+                                requestsFormKey++
+                                requestsFormOpen = true
+                                navController.popBackStack()
+                            }
+                        } else {
+                            NewRequestScreen(
+                                onBackClick = { navController.popBackStack() }
+                            )
+                        }
                     }
 
                     composable(

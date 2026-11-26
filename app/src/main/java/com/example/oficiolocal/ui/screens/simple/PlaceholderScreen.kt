@@ -32,8 +32,11 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.viewmodel.initializer
+import androidx.lifecycle.viewmodel.viewModelFactory
 import com.example.oficiolocal.R
 import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.Provider
@@ -41,6 +44,8 @@ import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.components.ReviewsSection
 import com.example.oficiolocal.ui.components.isAvailableToday
 import com.example.oficiolocal.ui.components.maxPriceOf
+import com.example.oficiolocal.ui.screens.request.NewRequestScreen
+import com.example.oficiolocal.ui.screens.request.NewRequestViewModel
 import kotlinx.coroutines.launch
 
 class DirectoryViewModel : ViewModel() {
@@ -118,12 +123,58 @@ fun ProviderListScreen(
 ) {
     val twoPane = widthSizeClass == WindowWidthSizeClass.Expanded
     var selectedId by rememberSaveable { mutableStateOf<String?>(null) }
+    // Id del prestador para el que se está llenando el formulario en el panel derecho.
+    var requestingId by rememberSaveable { mutableStateOf<String?>(null) }
+
+    val detailId = selectedId
+    val formId = requestingId
+
+    if (twoPane && detailId != null && formId != null) {
+        // Tres columnas: riel (lo dibuja AppNavGraph) | info del prestador | formulario.
+        Row(modifier = Modifier.fillMaxSize()) {
+            Box(modifier = Modifier.weight(0.5f)) {
+                key(detailId) {
+                    ProviderDetailScreen(
+                        providerId = detailId,
+                        onBackClick = {
+                            requestingId = null
+                            selectedId = null
+                        },
+                        onRequestClick = { requestingId = detailId }
+                    )
+                }
+            }
+            VerticalDivider()
+            Box(modifier = Modifier.weight(0.5f)) {
+                key(formId) {
+                    val formViewModel: NewRequestViewModel = viewModel(
+                        key = "new_request_$formId",
+                        factory = viewModelFactory {
+                            initializer {
+                                NewRequestViewModel(SavedStateHandle(mapOf("providerId" to formId)))
+                            }
+                        }
+                    )
+                    NewRequestScreen(
+                        onBackClick = { requestingId = null },
+                        viewModel = formViewModel
+                    )
+                }
+            }
+        }
+        return
+    }
 
     Row(modifier = Modifier.fillMaxSize()) {
         Box(modifier = Modifier.weight(if (twoPane) 0.4f else 1f)) {
             DirectoryList(
                 viewModel = viewModel,
-                onProviderClick = { id -> if (twoPane) selectedId = id else onProviderClick(id) },
+                onProviderClick = { id ->
+                    if (twoPane) {
+                        selectedId = id
+                        requestingId = null
+                    } else onProviderClick(id)
+                },
                 onNotificationsClick = onNotificationsClick
             )
         }
@@ -139,7 +190,8 @@ fun ProviderListScreen(
                         ProviderDetailScreen(
                             providerId = id,
                             onBackClick = { selectedId = null },
-                            onRequestClick = { onRequestClick(id) }
+                            // En pantalla ancha el formulario se abre en el panel derecho.
+                            onRequestClick = { requestingId = id }
                         )
                     }
                 }
@@ -298,6 +350,7 @@ private fun DirectoryList(
         }
     }
 }
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProviderDetailScreen(
@@ -476,6 +529,7 @@ fun ProviderDetailScreen(
         }
     }
 }
+
 private fun openExternal(context: Context, intent: Intent, errorMessage: String) {
     try {
         context.startActivity(intent)
