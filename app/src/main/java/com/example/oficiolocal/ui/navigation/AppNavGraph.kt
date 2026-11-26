@@ -41,6 +41,7 @@ import com.example.oficiolocal.data.notifications.NotificationsScreen
 import com.example.oficiolocal.ui.screens.auth.LoginScreen
 import com.example.oficiolocal.ui.screens.favorites.FavoritesScreen
 import com.example.oficiolocal.ui.screens.profile.ProfileScreen
+import com.example.oficiolocal.ui.screens.providerprofile.ProviderProfileScreen
 import com.example.oficiolocal.ui.screens.requests.MyRequestsScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderDetailScreen
 import com.example.oficiolocal.ui.screens.simple.ProviderListScreen
@@ -204,11 +205,20 @@ fun AppNavGraph(
 
                     composable(Routes.PROFILE) {
                         ProfileScreen(
+                            onEditProviderProfile = {
+                                navController.navigate(Routes.PROVIDER_PROFILE)
+                            },
                             onLogout = {
                                 navController.navigate(Routes.LOGIN) {
                                     popUpTo(navController.graph.id) { inclusive = true }
                                 }
                             }
+                        )
+                    }
+
+                    composable(Routes.PROVIDER_PROFILE) {
+                        ProviderProfileScreen(
+                            onBackClick = { navController.popBackStack() }
                         )
                     }
 

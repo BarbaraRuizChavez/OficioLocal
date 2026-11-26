@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pp_open">Editar mi perfil de prestador</string>
+    <string name="pp_title">Mi perfil de prestador</string>
+    <string name="pp_category">Oficio</string>
+    <string name="pp_location">Zona</string>
+    <string name="pp_price">Rango de precio (ej. $200 - $500)</string>
+    <string name="pp_schedule">Horario (ej. Lun - Sáb: 8:00 AM - 7:00 PM)</string>
+    <string name="pp_phone">Teléfono</string>
+    <string name="pp_description">Descripción</string>
+    <string name="pp_services">Servicios</string>
+    <string name="pp_services_hint">Sepáralos con comas</string>
+    <string name="pp_save">Guardar perfil</string>
+    <string name="pp_saving">Guardando...</string>
+    <string name="pp_saved_cloud">Perfil guardado y sincronizado</string>
+    <string name="pp_saved_local">Perfil guardado localmente; sincronización pendiente</string>
+</resources>

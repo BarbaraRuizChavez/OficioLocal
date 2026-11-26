@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="pp_open">Edit my provider profile</string>
+    <string name="pp_title">My provider profile</string>
+    <string name="pp_category">Trade</string>
+    <string name="pp_location">Service area</string>
+    <string name="pp_price">Price range (e.g. $200 - $500)</string>
+    <string name="pp_schedule">Schedule (e.g. Mon - Sat: 8:00 AM - 7:00 PM)</string>
+    <string name="pp_phone">Phone</string>
+    <string name="pp_description">Description</string>
+    <string name="pp_services">Services</string>
+    <string name="pp_services_hint">Separate services with commas</string>
+    <string name="pp_save">Save profile</string>
+    <string name="pp_saving">Saving...</string>
+    <string name="pp_saved_cloud">Profile saved and synced</string>
+    <string name="pp_saved_local">Profile saved locally; sync is pending</string>
+</resources>

@@ -51,6 +51,7 @@ private fun setLanguage(context: Context, tag: String) {
 @Composable
 fun ProfileScreen(
     onLogout: () -> Unit,
+    onEditProviderProfile: () -> Unit,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val darkMode by viewModel.darkMode.collectAsState()
@@ -98,6 +99,14 @@ fun ProfileScreen(
                         ) {
                             Text(stringResource(R.string.profile_edit_name))
                         }
+                    }
+                }
+                if (currentUser.isProvider) {
+                    OutlinedButton(
+                        onClick = onEditProviderProfile,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(stringResource(R.string.pp_open))
                     }
                 }
             }

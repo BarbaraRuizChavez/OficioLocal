@@ -9,6 +9,7 @@ object Routes {
     const val PROFILE = "profile"
 
     const val NOTIFICATIONS = "notifications"
+    const val PROVIDER_PROFILE = "provider_profile"
 
     const val PROVIDER_DETAIL = "provider_detail/{providerId}"
 

@@ -4,6 +4,7 @@ import com.example.oficiolocal.data.local.dao.ProviderDao
 import com.example.oficiolocal.data.local.entity.toDomain
 import com.example.oficiolocal.data.local.entity.toEntity
 import com.example.oficiolocal.domain.Provider
+import com.example.oficiolocal.domain.User
 import kotlinx.coroutines.runBlocking
 
 /** Prestadores: se leen de Room y se actualizan desde la API. */
@@ -57,6 +58,52 @@ class ProviderRepository(
 
     fun getProviderById(id: String): Provider? = cache.find { it.id == id }
 
+    fun providerIdFor(user: User): String = if (user.id == "u2") "1" else user.id
+
+    /** Obtiene el perfil remoto si existe; si no, crea un perfil local inicial para el prestador. */
+    suspend fun ensureProviderProfile(user: User) {
+        val id = providerIdFor(user)
+        val remoteProvider = remote.getProvider(id).getOrNull()
+            ?.takeIf { it.name.isNotBlank() }
+        if (remoteProvider != null) {
+            persistLocal(remoteProvider)
+            return
+        }
+
+        if (cache.any { it.id == id }) return
+
+        save(
+            Provider(
+                id = id,
+                name = user.name,
+                category = "Plomería",
+                location = "",
+                rating = 0.0,
+                reviewCount = 0,
+                priceRange = "",
+                schedule = "",
+                phone = "",
+                description = "",
+                services = emptyList()
+            )
+        )
+    }
+
+    /** Guarda primero en Room y luego intenta actualizar el perfil remoto. */
+    suspend fun save(provider: Provider): Boolean {
+        persistLocal(provider)
+        return remote.upsertProvider(provider).isSuccess
+    }
+
+    /** Actualiza el perfil desde Firestore; mantiene la copia local si no hay conexión. */
+    suspend fun refreshOne(id: String): Provider? {
+        val provider = remote.getProvider(id).getOrNull()
+            ?.takeIf { it.name.isNotBlank() }
+            ?: return getProviderById(id)
+        persistLocal(provider)
+        return provider
+    }
+
     /** Pide los prestadores a la API y los guarda en Room. Devuelve false si no hubo red. */
     suspend fun refreshFromApi(): Boolean {
         val list = remote.getProviders().getOrNull() ?: return false
@@ -64,5 +111,10 @@ class ProviderRepository(
         dao.insertAll(list.map { it.toEntity() })
         cache = dao.getAll().map { it.toDomain() }
         return true
+    }
+
+    private suspend fun persistLocal(provider: Provider) {
+        dao.insertAll(listOf(provider.toEntity()))
+        cache = dao.getAll().map { it.toDomain() }
     }
 }

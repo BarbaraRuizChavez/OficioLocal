@@ -311,8 +311,11 @@ fun ProviderDetailScreen(
     val isFavorite by ServiceLocator.favoriteRepository
         .observeIsFavorite(providerId)
         .collectAsState(initial = false)
-    val provider = remember(providerId) {
-        ServiceLocator.providerRepository.getProviderById(providerId)
+    var provider by remember(providerId) {
+        mutableStateOf(ServiceLocator.providerRepository.getProviderById(providerId))
+    }
+    LaunchedEffect(providerId) {
+        provider = ServiceLocator.providerRepository.refreshOne(providerId) ?: provider
     }
     Scaffold(
         topBar = {

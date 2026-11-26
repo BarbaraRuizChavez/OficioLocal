@@ -58,6 +58,11 @@ class LoginViewModel : ViewModel() {
             }
 
             if (ok) {
+                ServiceLocator.authRepository.getCurrentUser()?.let { user ->
+                    if (user.isProvider) {
+                        ServiceLocator.providerRepository.ensureProviderProfile(user)
+                    }
+                }
                 onSuccess()
             } else {
                 errorRes = if (isRegister) R.string.error_email_taken else R.string.error_credentials
