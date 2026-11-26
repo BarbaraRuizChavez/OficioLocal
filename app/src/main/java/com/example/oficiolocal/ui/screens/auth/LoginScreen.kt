@@ -32,15 +32,17 @@ import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
 
-private val Navy = Color(0xFF101A33)
+// Colores que se adaptan al modo claro/oscuro (antes eran fijos y en oscuro quedaba blanco sobre blanco).
+private val NavyFixed = Color(0xFF101A33)
 private val Yellow = Color(0xFFFFC21A)
-private val TextGray = Color(0xFF60636B)
-private val FieldBorder = Color(0xFF9B9BA2)
+private val Navy: Color @Composable get() = MaterialTheme.colorScheme.onBackground
+private val TextGray: Color @Composable get() = MaterialTheme.colorScheme.onSurfaceVariant
+private val FieldBorder: Color @Composable get() = MaterialTheme.colorScheme.outline
 
 @Composable
 fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier, viewModel: LoginViewModel = viewModel()) {
     var passwordVisible by remember { mutableStateOf(false) }
-    Column(modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).imePadding()) {
+    Column(modifier.fillMaxSize().background(MaterialTheme.colorScheme.background).verticalScroll(rememberScrollState()).imePadding()) {
         Image(
             painter = painterResource(R.drawable.login_illustration),
             contentDescription = stringResource(R.string.app_name),
@@ -127,7 +129,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier, viewM
                 onClick = { viewModel.submit(onLoginSuccess) },
                 modifier = Modifier.fillMaxWidth().height(58.dp),
                 shape = RoundedCornerShape(32.dp),
-                colors = ButtonDefaults.buttonColors(containerColor = Yellow, contentColor = Navy)
+                colors = ButtonDefaults.buttonColors(containerColor = Yellow, contentColor = NavyFixed)
             ) {
                 Text(
                     text = if (viewModel.isRegister) stringResource(R.string.auth_register) else stringResource(R.string.auth_login),
@@ -135,7 +137,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier, viewM
                     fontWeight = FontWeight.Bold
                 )
             }
-            Surface(color = Color(0xFFF5F4F6), shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
+            Surface(color = MaterialTheme.colorScheme.surfaceVariant, shape = RoundedCornerShape(20.dp), modifier = Modifier.fillMaxWidth()) {
                 Column(Modifier.fillMaxWidth().padding(16.dp), horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = if (viewModel.isRegister) stringResource(R.string.auth_to_login) else stringResource(R.string.auth_to_register),
@@ -159,7 +161,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier, viewM
 @Composable
 private fun authFieldColors() = OutlinedTextFieldDefaults.colors(
     focusedTextColor = Navy, unfocusedTextColor = Navy,
-    focusedContainerColor = Color.White, unfocusedContainerColor = Color.White,
+    focusedContainerColor = MaterialTheme.colorScheme.surface, unfocusedContainerColor = MaterialTheme.colorScheme.surface,
     focusedBorderColor = Yellow, unfocusedBorderColor = FieldBorder,
     focusedLabelColor = Navy, unfocusedLabelColor = TextGray, cursorColor = Yellow
 )
