@@ -20,6 +20,7 @@ import androidx.compose.material3.AssistChip
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Checkbox
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
@@ -39,6 +40,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
+import com.example.oficiolocal.di.ServiceLocator
 import com.example.oficiolocal.domain.RequestStatus
 import com.example.oficiolocal.domain.ServiceRequest
 import com.example.oficiolocal.domain.JobType
@@ -46,6 +48,7 @@ import com.example.oficiolocal.domain.Urgency
 import com.example.oficiolocal.ui.components.AppDatePickerDialog
 import com.example.oficiolocal.ui.components.AppTimePickerDialog
 import com.example.oficiolocal.ui.components.formatTime
+import com.example.oficiolocal.ui.components.StatusChip
 import java.text.DateFormat
 import java.util.Date
 import java.util.TimeZone
@@ -251,10 +254,10 @@ fun MyRequestsScreen(
                         requestToEdit = null
                     },
                     enabled = editDescription.isNotBlank() &&
-                        editLocation.isNotBlank() &&
-                        editDateMillis != null &&
-                        editHour != null &&
-                        editMinute != null
+                            editLocation.isNotBlank() &&
+                            editDateMillis != null &&
+                            editHour != null &&
+                            editMinute != null
                 ) {
                     Text(stringResource(R.string.req_save))
                 }
@@ -324,10 +327,12 @@ private fun RequestCard(
 ) {
     Card(
         onClick = onClick,
-        modifier = Modifier.fillMaxWidth()
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
+            modifier = Modifier.padding(14.dp),
             verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             Row(
@@ -339,7 +344,7 @@ private fun RequestCard(
                     text = request.providerName.ifBlank { stringResource(R.string.req_unassigned) },
                     style = MaterialTheme.typography.titleMedium
                 )
-                AssistChip(onClick = {}, label = { Text(statusLabel(request.status)) })
+                StatusChip(label = statusLabel(request.status), status = request.status)
             }
 
             Text(request.description)

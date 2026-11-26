@@ -19,21 +19,21 @@ class ProviderRepository(
         Provider(
             id = "1", name = "Carlos Mendoza", category = "Plomería", location = "Centro",
             rating = 4.8, reviewCount = 15, priceRange = "$200 - $500",
-            schedule = "Lun - Sáb: 8:00 AM - 7:00 PM", phone = "4451234567",
+            schedule = "Lun - Sáb: 8:00 AM - 7:00 PM", phone = "4450000101",
             description = "Plomero certificado con más de 10 años de experiencia en reparación de fugas e instalación sanitaria.",
             services = listOf("Reparación de fugas", "Instalación de tanques", "Destape de cañerías")
         ),
         Provider(
             id = "2", name = "Ana Gómez", category = "Electricidad", location = "Norte",
             rating = 4.9, reviewCount = 22, priceRange = "$300 - $800",
-            schedule = "Lun - Vie: 9:00 AM - 5:00 PM", phone = "4457654321",
+            schedule = "Lun - Vie: 9:00 AM - 5:00 PM", phone = "4450000102",
             description = "Técnica electricista enfocada en instalaciones residenciales y mantenimiento.",
             services = listOf("Cableado residencial", "Solución de cortocircuitos", "Instalación de lámparas")
         ),
         Provider(
             id = "3", name = "Roberto Silva", category = "Carpintería", location = "Sur",
             rating = 4.6, reviewCount = 9, priceRange = "$400 - $1200",
-            schedule = "Lun - Sáb: 9:00 AM - 6:00 PM", phone = "4459876543",
+            schedule = "Lun - Sáb: 9:00 AM - 6:00 PM", phone = "4450000103",
             description = "Fabricación y reparación de muebles a medida, puertas y closets.",
             services = listOf("Reparación de puertas", "Muebles a medida", "Lijado y barnizado")
         )
@@ -116,6 +116,22 @@ class ProviderRepository(
         dao.insertAll(list.map { it.toEntity() })
         cache = dao.getAll().map { it.toDomain() }
         return true
+    }
+
+    /**
+     * Reemplaza en Room los teléfonos de ejemplo por números ficticios (445-000-01xx).
+     * Solo toca la copia local; no escribe en Firestore ni cambia el dueño del perfil.
+     */
+    suspend fun fixDemoPhones() {
+        val replacements = mapOf(
+            "4451234567" to "4450000101",
+            "4457654321" to "4450000102",
+            "4459876543" to "4450000103"
+        )
+        val toFix = dao.getAll().map { it.toDomain() }.filter { it.phone in replacements }
+        if (toFix.isEmpty()) return
+        dao.insertAll(toFix.map { it.copy(phone = replacements.getValue(it.phone)).toEntity() })
+        cache = dao.getAll().map { it.toDomain() }
     }
 
     private suspend fun persistLocal(provider: Provider) {

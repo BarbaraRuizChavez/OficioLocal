@@ -31,6 +31,7 @@ object ServiceLocator {
             reviewRepository.seedIfEmpty()
             // Sincronización con la API: si no hay internet, simplemente no hace nada.
             runCatching { providerRepository.refreshFromApi() }
+            runCatching { providerRepository.fixDemoPhones() }
             runCatching { reviewRepository.syncPending() }
             runCatching { reviewRepository.refreshFromApi() }
             runCatching { mediaAttachmentRepository.syncPendingUploads() }

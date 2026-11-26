@@ -1,4 +1,4 @@
-package com.example.oficiolocal.data.notifications
+package com.example.oficiolocal.ui.screens.notifications
 
 
 import androidx.lifecycle.ViewModel

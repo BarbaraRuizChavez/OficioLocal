@@ -26,6 +26,9 @@ import com.example.oficiolocal.data.repository.ProviderRepository
 import com.example.oficiolocal.domain.Provider
 import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.screens.simple.localizedTradeName
+import com.example.oficiolocal.ui.components.ProviderAvatar
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 
 @Composable
 fun FavoritesScreen(
@@ -95,6 +98,8 @@ private fun FavoriteProviderCard(
             modifier = Modifier.padding(start = 16.dp, top = 8.dp, bottom = 8.dp, end = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            ProviderAvatar(category = provider.category, size = 52.dp)
+            Spacer(modifier = Modifier.width(12.dp))
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = provider.name,

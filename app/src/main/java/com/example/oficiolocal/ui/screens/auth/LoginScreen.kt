@@ -17,6 +17,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
@@ -25,6 +26,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -40,7 +42,7 @@ fun LoginScreen(onLoginSuccess: () -> Unit, modifier: Modifier = Modifier, viewM
     var passwordVisible by remember { mutableStateOf(false) }
     Column(modifier.fillMaxSize().background(Color.White).verticalScroll(rememberScrollState()).imePadding()) {
         Image(
-            painter = painterResource(R.drawable.logo_login),
+            painter = painterResource(R.drawable.login_illustration),
             contentDescription = stringResource(R.string.app_name),
             modifier = Modifier.fillMaxWidth().height(310.dp),
             contentScale = ContentScale.Crop
