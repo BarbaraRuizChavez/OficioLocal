@@ -15,6 +15,14 @@ import kotlinx.coroutines.launch
 class RequestDetailViewModel(private val requestId: String) : ViewModel() {
     private val repository = ServiceLocator.requestRepository
 
+    init {
+        viewModelScope.launch {
+            runCatching {
+                ServiceLocator.mediaAttachmentRepository.refreshFromCloud(requestId)
+            }
+        }
+    }
+
     val request: StateFlow<ServiceRequest?> = repository.requests
         .map { requests -> requests.find { it.id == requestId } }
         .stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), null)

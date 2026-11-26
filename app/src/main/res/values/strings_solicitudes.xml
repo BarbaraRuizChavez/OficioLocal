@@ -22,4 +22,8 @@
     <string name="req_photo_preview">Vista previa de la foto adjunta</string>
     <string name="rd_attachments">Fotografías adjuntas</string>
     <string name="rd_photo_description">Fotografía de la solicitud</string>
+    <string name="media_sync_synced">Foto respaldada en Firebase</string>
+    <string name="media_sync_pending">Foto pendiente de sincronización</string>
+    <string name="media_sync_failed">No se pudo respaldar; se conserva en el dispositivo</string>
+    <string name="media_sync_local">Foto guardada solo en este dispositivo</string>
 </resources>

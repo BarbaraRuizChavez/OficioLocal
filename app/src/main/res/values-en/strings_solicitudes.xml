@@ -22,4 +22,8 @@
     <string name="req_photo_preview">Attached photo preview</string>
     <string name="rd_attachments">Attached photos</string>
     <string name="rd_photo_description">Request photo</string>
+    <string name="media_sync_synced">Photo backed up to Firebase</string>
+    <string name="media_sync_pending">Photo is waiting to sync</string>
+    <string name="media_sync_failed">Backup failed; photo remains on this device</string>
+    <string name="media_sync_local">Photo saved only on this device</string>
 </resources>

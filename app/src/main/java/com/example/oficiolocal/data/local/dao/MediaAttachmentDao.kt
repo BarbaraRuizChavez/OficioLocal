@@ -16,6 +16,9 @@ interface MediaAttachmentDao {
     @Query("SELECT * FROM media_attachments WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): MediaAttachmentEntity?
 
+    @Query("SELECT * FROM media_attachments WHERE syncState IN ('PENDING', 'FAILED') ORDER BY createdAt ASC")
+    suspend fun getPendingUploads(): List<MediaAttachmentEntity>
+
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(attachment: MediaAttachmentEntity)
 

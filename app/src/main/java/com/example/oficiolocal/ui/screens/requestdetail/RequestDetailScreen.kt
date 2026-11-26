@@ -120,10 +120,22 @@ fun RequestDetailScreen(
                         Text(stringResource(R.string.rd_attachments), style = MaterialTheme.typography.titleMedium)
                         attachments.forEach { attachment ->
                             AsyncImage(
-                                model = Uri.parse(attachment.uri),
+                                model = attachment.remoteUrl ?: Uri.parse(attachment.uri),
                                 contentDescription = stringResource(R.string.rd_photo_description),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))
+                            )
+                            Text(
+                                stringResource(
+                                    when (attachment.syncState) {
+                                        "SYNCED" -> R.string.media_sync_synced
+                                        "FAILED" -> R.string.media_sync_failed
+                                        "PENDING" -> R.string.media_sync_pending
+                                        else -> R.string.media_sync_local
+                                    }
+                                ),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }

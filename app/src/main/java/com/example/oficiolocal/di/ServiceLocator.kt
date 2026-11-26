@@ -34,6 +34,7 @@ object ServiceLocator {
             runCatching { roomRequestRepository.refreshFromApi() }
             runCatching { reviewRepository.syncPending() }
             runCatching { reviewRepository.refreshFromApi() }
+            runCatching { mediaAttachmentRepository.syncPendingUploads() }
         }
     }
 
