@@ -40,6 +40,9 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
+import com.example.oficiolocal.ui.components.UserAvatar
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
 
 private fun setLanguage(context: Context, tag: String) {
     if (Build.VERSION.SDK_INT >= 33) {
@@ -82,22 +85,29 @@ fun ProfileScreen(
 
             user?.let { currentUser ->
                 Card(modifier = Modifier.fillMaxWidth()) {
-                    Column(modifier = Modifier.padding(16.dp)) {
-                        Text(currentUser.name, style = MaterialTheme.typography.titleMedium)
-                        Text(currentUser.email, style = MaterialTheme.typography.bodyMedium)
-                        Text(
-                            text = stringResource(
-                                if (currentUser.isProvider) R.string.role_provider else R.string.role_client
-                            ),
-                            style = MaterialTheme.typography.bodySmall
-                        )
-                        TextButton(
-                            onClick = {
-                                editedName = currentUser.name
-                                showEditName = true
+                    Row(
+                        modifier = Modifier.padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        UserAvatar(name = currentUser.name, size = 64.dp)
+                        Spacer(Modifier.width(16.dp))
+                        Column {
+                            Text(currentUser.name, style = MaterialTheme.typography.titleMedium)
+                            Text(currentUser.email, style = MaterialTheme.typography.bodyMedium)
+                            Text(
+                                text = stringResource(
+                                    if (currentUser.isProvider) R.string.role_provider else R.string.role_client
+                                ),
+                                style = MaterialTheme.typography.bodySmall
+                            )
+                            TextButton(
+                                onClick = {
+                                    editedName = currentUser.name
+                                    showEditName = true
+                                }
+                            ) {
+                                Text(stringResource(R.string.profile_edit_name))
                             }
-                        ) {
-                            Text(stringResource(R.string.profile_edit_name))
                         }
                     }
                 }
