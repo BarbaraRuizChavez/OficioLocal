@@ -83,6 +83,7 @@ internal fun urgencyLabel(urgency: Urgency): String = stringResource(
 fun MyRequestsScreen(
     onNewRequest: () -> Unit,
     onRequestClick: (String) -> Unit,
+    selectedRequestId: String? = null,
     viewModel: MyRequestsViewModel = viewModel()
 ) {
     val requests by viewModel.requests.collectAsState()
@@ -142,6 +143,7 @@ fun MyRequestsScreen(
                     items(requests, key = { it.id }) { request ->
                         RequestCard(
                             request = request,
+                            selected = selectedRequestId == request.id,
                             onClick = { onRequestClick(request.id) },
                             onEdit = {
                                 requestToEdit = request
@@ -320,6 +322,7 @@ fun MyRequestsScreen(
 @Composable
 private fun RequestCard(
     request: ServiceRequest,
+    selected: Boolean,
     onClick: () -> Unit,
     onEdit: () -> Unit,
     onCancel: () -> Unit,
@@ -329,7 +332,13 @@ private fun RequestCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 3.dp),
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+        colors = CardDefaults.cardColors(
+            containerColor = if (selected) {
+                MaterialTheme.colorScheme.secondaryContainer
+            } else {
+                MaterialTheme.colorScheme.surface
+            }
+        )
     ) {
         Column(
             modifier = Modifier.padding(14.dp),

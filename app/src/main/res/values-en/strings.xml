@@ -103,6 +103,9 @@
     <string name="directory_search_hint">Search by name or location...</string>
     <string name="directory_search">Search</string>
     <string name="directory_empty">No providers found.</string>
+    <string name="directory_select_provider">Select a provider to see the details</string>
+    <string name="tracking_select_request">Select a request to see the details</string>
+    <string name="profile_preferences_title">Preferences and session</string>
     <string name="provider_price_label">Approx. price: %1$s</string>
     <string name="provider_detail_title">Provider details</string>
     <string name="provider_not_found">Provider not found</string>

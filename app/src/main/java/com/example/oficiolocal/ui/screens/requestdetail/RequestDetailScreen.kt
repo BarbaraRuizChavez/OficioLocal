@@ -48,6 +48,7 @@ import coil3.compose.AsyncImage
 fun RequestDetailScreen(
     requestId: String,
     onBackClick: () -> Unit,
+    showBackButton: Boolean = true,
     viewModel: RequestDetailViewModel = viewModel(
         key = requestId,
         factory = viewModelFactory {
@@ -63,11 +64,13 @@ fun RequestDetailScreen(
             TopAppBar(
                 title = { Text(stringResource(R.string.rd_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
+                    if (showBackButton) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
                     }
                 }
             )
@@ -120,7 +123,7 @@ fun RequestDetailScreen(
                         Text(stringResource(R.string.rd_attachments), style = MaterialTheme.typography.titleMedium)
                         attachments.forEach { attachment ->
                             AsyncImage(
-                                model = attachment.remoteUrl ?: Uri.parse(attachment.uri),
+                                model = Uri.parse(attachment.uri),
                                 contentDescription = stringResource(R.string.rd_photo_description),
                                 contentScale = ContentScale.Crop,
                                 modifier = Modifier.fillMaxWidth().height(220.dp).clip(RoundedCornerShape(12.dp))

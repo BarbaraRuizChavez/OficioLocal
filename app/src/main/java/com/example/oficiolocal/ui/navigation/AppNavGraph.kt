@@ -18,8 +18,11 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationDrawerItem
 import androidx.compose.material3.NavigationRail
 import androidx.compose.material3.NavigationRailItem
+import androidx.compose.material3.PermanentDrawerSheet
+import androidx.compose.material3.PermanentNavigationDrawer
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.VerticalDivider
@@ -34,6 +37,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -78,14 +82,17 @@ fun AppNavGraph(
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
 
-    // En pantalla ancha el menú lateral también se ve en el detalle del prestador.
+    // En pantallas medianas y expandidas el menú permanece disponible en el detalle.
     val onProviderDetail = currentRoute == Routes.PROVIDER_DETAIL
-    // Pantallas anchas (tableta): riel lateral. Pantallas compactas: barra inferior.
-    val isWide = widthSizeClass != WindowWidthSizeClass.Compact
-    val showMenu = navItems.any { it.route == currentRoute } || (isWide && onProviderDetail)
+    val isExpanded = widthSizeClass == WindowWidthSizeClass.Expanded
+    val showMenu = navItems.any { it.route == currentRoute } ||
+        (widthSizeClass != WindowWidthSizeClass.Compact && onProviderDetail) ||
+        (isExpanded && currentRoute == Routes.PROVIDER_PROFILE)
     val offline by ServiceLocator.settingsRepository.offline.collectAsState()
+    var selectedProviderId by rememberSaveable { mutableStateOf<String?>(null) }
+    var selectedRequestId by rememberSaveable { mutableStateOf<String?>(null) }
 
-    // Estado del formulario de Solicitudes en pantalla ancha (vive aquí para sobrevivir a la rotación).
+    // Estado del formulario de Solicitudes en pantalla expandida.
     var requestsFormOpen by rememberSaveable { mutableStateOf(false) }
     // Cambia cada vez que se abre, para que el formulario empiece vacío.
     var requestsFormKey by rememberSaveable { mutableIntStateOf(0) }
@@ -100,7 +107,7 @@ fun AppNavGraph(
 
     Scaffold(
         bottomBar = {
-            if (showMenu && !isWide) {
+            if (showMenu && widthSizeClass == WindowWidthSizeClass.Compact) {
                 NavigationBar {
                     navItems.forEach { item ->
                         NavigationBarItem(
@@ -114,46 +121,34 @@ fun AppNavGraph(
             }
         }
     ) { innerPadding ->
-        Row(
+        Column(
             modifier = Modifier
                 .padding(innerPadding)
                 .fillMaxSize()
         ) {
-            if (showMenu && isWide) {
-                NavigationRail {
-                    navItems.forEach { item ->
-                        NavigationRailItem(
-                            selected = currentRoute == item.route ||
-                                    (item.route == Routes.HOME && onProviderDetail),
-                            onClick = { goTo(item.route) },
-                            icon = { Icon(item.icon, contentDescription = null) },
-                            label = { Text(stringResource(item.label)) }
-                        )
-                    }
-                }
+            if (offline) {
+                Text(
+                    text = stringResource(R.string.offline_banner),
+                    color = MaterialTheme.colorScheme.onErrorContainer,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .background(MaterialTheme.colorScheme.errorContainer)
+                        .padding(8.dp)
+                )
             }
 
-            Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .fillMaxHeight()
+            AdaptiveNavigationContainer(
+                widthSizeClass = widthSizeClass,
+                showMenu = showMenu,
+                currentRoute = currentRoute,
+                onNavigate = ::goTo,
+                modifier = Modifier.weight(1f)
             ) {
-                if (offline) {
-                    Text(
-                        text = stringResource(R.string.offline_banner),
-                        color = MaterialTheme.colorScheme.onErrorContainer,
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.errorContainer)
-                            .padding(8.dp)
-                    )
-                }
-
                 NavHost(
                     navController = navController,
                     startDestination = Routes.LOGIN,
-                    modifier = Modifier.weight(1f)
+                    modifier = Modifier.fillMaxSize()
                 ) {
                     composable(Routes.LOGIN) {
                         LoginScreen(
@@ -166,18 +161,61 @@ fun AppNavGraph(
                     }
 
                     composable(Routes.HOME) {
-                        ProviderListScreen(
-                            widthSizeClass = widthSizeClass,
-                            onProviderClick = { providerId ->
-                                navController.navigate(Routes.buildProviderDetailRoute(providerId))
-                            },
-                            onRequestClick = { providerId ->
-                                navController.navigate(Routes.buildNewRequestRoute(providerId))
-                            },
-                            onNotificationsClick = {
-                                navController.navigate(Routes.NOTIFICATIONS)
+                        if (isExpanded) {
+                            Row(Modifier.fillMaxSize()) {
+                                Box(Modifier.weight(1f).fillMaxHeight()) {
+                                    ProviderListScreen(
+                                        widthSizeClass = widthSizeClass,
+                                        onProviderClick = { selectedProviderId = it },
+                                        onRequestClick = { providerId ->
+                                            navController.navigate(Routes.buildNewRequestRoute(providerId))
+                                        },
+                                        onNotificationsClick = {
+                                            navController.navigate(Routes.NOTIFICATIONS)
+                                        }
+                                    )
+                                }
+                                VerticalDivider()
+                                Box(
+                                    modifier = Modifier.weight(1.15f).fillMaxHeight(),
+                                    contentAlignment = Alignment.TopCenter
+                                ) {
+                                    val selectedId = selectedProviderId
+                                    if (selectedId == null) {
+                                        Box(
+                                            modifier = Modifier.fillMaxSize(),
+                                            contentAlignment = Alignment.Center
+                                        ) {
+                                            Text(stringResource(R.string.directory_select_provider))
+                                        }
+                                    } else {
+                                        ProviderDetailScreen(
+                                            providerId = selectedId,
+                                            onBackClick = { selectedProviderId = null },
+                                            onRequestClick = {
+                                                navController.navigate(
+                                                    Routes.buildNewRequestRoute(selectedId)
+                                                )
+                                            },
+                                            showBackButton = false
+                                        )
+                                    }
+                                }
                             }
-                        )
+                        } else {
+                            ProviderListScreen(
+                                widthSizeClass = widthSizeClass,
+                                onProviderClick = { providerId ->
+                                    navController.navigate(Routes.buildProviderDetailRoute(providerId))
+                                },
+                                onRequestClick = { providerId ->
+                                    navController.navigate(Routes.buildNewRequestRoute(providerId))
+                                },
+                                onNotificationsClick = {
+                                    navController.navigate(Routes.NOTIFICATIONS)
+                                }
+                            )
+                        }
                     }
 
                     composable(Routes.NOTIFICATIONS) {
@@ -189,38 +227,63 @@ fun AppNavGraph(
                     composable(Routes.REQUESTS) {
                         // Si el formulario estaba abierto a la derecha y se gira a vertical,
                         // se muestra como pantalla completa.
-                        LaunchedEffect(isWide, requestsFormOpen) {
-                            if (!isWide && requestsFormOpen) {
+                        LaunchedEffect(isExpanded, requestsFormOpen) {
+                            if (!isExpanded && requestsFormOpen) {
                                 requestsFormOpen = false
                                 navController.navigate(Routes.NEW_REQUEST)
                             }
                         }
 
-                        if (isWide && requestsFormOpen) {
-                            // Riel (izquierda) | Mis solicitudes (centro) | Formulario (derecha)
+                        if (isExpanded) {
+                            // Lista a la izquierda; detalle o formulario a la derecha.
                             Row(modifier = Modifier.fillMaxSize()) {
                                 Box(modifier = Modifier.weight(1f)) {
                                     MyRequestsScreen(
-                                        onNewRequest = { },
+                                        selectedRequestId = selectedRequestId,
+                                        onNewRequest = {
+                                            selectedRequestId = null
+                                            requestsFormKey++
+                                            requestsFormOpen = true
+                                        },
                                         onRequestClick = { requestId ->
-                                            navController.navigate(Routes.buildRequestDetailRoute(requestId))
+                                            selectedRequestId = requestId
+                                            requestsFormOpen = false
                                         }
                                     )
                                 }
                                 VerticalDivider()
-                                Box(modifier = Modifier.weight(1f)) {
-                                    val formViewModel: NewRequestViewModel =
-                                        viewModel(key = "new_request_pane_$requestsFormKey")
-                                    NewRequestScreen(
-                                        onBackClick = { requestsFormOpen = false },
-                                        viewModel = formViewModel
-                                    )
+                                Box(modifier = Modifier.weight(1.15f)) {
+                                    when {
+                                        requestsFormOpen -> {
+                                            val formViewModel: NewRequestViewModel =
+                                                viewModel(key = "new_request_pane_$requestsFormKey")
+                                            NewRequestScreen(
+                                                onBackClick = { requestsFormOpen = false },
+                                                viewModel = formViewModel
+                                            )
+                                        }
+                                        selectedRequestId != null -> {
+                                            RequestDetailScreen(
+                                                requestId = selectedRequestId!!,
+                                                onBackClick = { selectedRequestId = null },
+                                                showBackButton = false
+                                            )
+                                        }
+                                        else -> {
+                                            Box(
+                                                modifier = Modifier.fillMaxSize(),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Text(stringResource(R.string.tracking_select_request))
+                                            }
+                                        }
+                                    }
                                 }
                             }
                         } else {
                             MyRequestsScreen(
                                 onNewRequest = {
-                                    if (isWide) {
+                                    if (isExpanded) {
                                         requestsFormKey++
                                         requestsFormOpen = true
                                     } else {
@@ -245,10 +308,11 @@ fun AppNavGraph(
                     }
 
                     composable(Routes.NEW_REQUEST) {
-                        if (isWide) {
+                        if (isExpanded) {
                             // Se giró a horizontal con el formulario abierto: regresar a Solicitudes
                             // y mostrarlo en el panel derecho.
                             LaunchedEffect(Unit) {
+                                selectedRequestId = null
                                 requestsFormKey++
                                 requestsFormOpen = true
                                 navController.popBackStack()
@@ -285,6 +349,7 @@ fun AppNavGraph(
 
                     composable(Routes.PROFILE) {
                         ProfileScreen(
+                            widthSizeClass = widthSizeClass,
                             onEditProviderProfile = {
                                 navController.navigate(Routes.PROVIDER_PROFILE)
                             },
@@ -297,9 +362,35 @@ fun AppNavGraph(
                     }
 
                     composable(Routes.PROVIDER_PROFILE) {
-                        ProviderProfileScreen(
-                            onBackClick = { navController.popBackStack() }
-                        )
+                        if (isExpanded) {
+                            // Mantiene Perfil a la izquierda y abre su formulario a la derecha.
+                            Row(modifier = Modifier.fillMaxSize()) {
+                                Box(modifier = Modifier.weight(0.9f)) {
+                                    ProfileScreen(
+                                        widthSizeClass = WindowWidthSizeClass.Medium,
+                                        showProviderEditButton = false,
+                                        onEditProviderProfile = {},
+                                        onLogout = {
+                                            navController.navigate(Routes.LOGIN) {
+                                                popUpTo(navController.graph.id) { inclusive = true }
+                                            }
+                                        }
+                                    )
+                                }
+                                VerticalDivider()
+                                Box(modifier = Modifier.weight(1.1f)) {
+                                    ProviderProfileScreen(
+                                        onBackClick = { navController.popBackStack() },
+                                        widthSizeClass = WindowWidthSizeClass.Medium
+                                    )
+                                }
+                            }
+                        } else {
+                            ProviderProfileScreen(
+                                onBackClick = { navController.popBackStack() },
+                                widthSizeClass = widthSizeClass
+                            )
+                        }
                     }
 
                     composable(
@@ -320,5 +411,56 @@ fun AppNavGraph(
                 }
             }
         }
+    }
+}
+
+@Composable
+private fun AdaptiveNavigationContainer(
+    widthSizeClass: WindowWidthSizeClass,
+    showMenu: Boolean,
+    currentRoute: String?,
+    onNavigate: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    when {
+        widthSizeClass == WindowWidthSizeClass.Expanded && showMenu -> {
+            PermanentNavigationDrawer(
+                modifier = modifier,
+                drawerContent = {
+                    PermanentDrawerSheet {
+                        navItems.forEach { item ->
+                            NavigationDrawerItem(
+                                label = { Text(stringResource(item.label)) },
+                                selected = currentRoute == item.route ||
+                                    (item.route == Routes.HOME && currentRoute == Routes.PROVIDER_DETAIL) ||
+                                    (item.route == Routes.PROFILE && currentRoute == Routes.PROVIDER_PROFILE),
+                                onClick = { onNavigate(item.route) },
+                                icon = { Icon(item.icon, contentDescription = null) },
+                                modifier = Modifier.padding(horizontal = 12.dp)
+                            )
+                        }
+                    }
+                },
+                content = content
+            )
+        }
+        widthSizeClass == WindowWidthSizeClass.Medium && showMenu -> {
+            Row(modifier = modifier) {
+                NavigationRail {
+                    navItems.forEach { item ->
+                        NavigationRailItem(
+                            selected = currentRoute == item.route ||
+                                (item.route == Routes.HOME && currentRoute == Routes.PROVIDER_DETAIL),
+                            onClick = { onNavigate(item.route) },
+                            icon = { Icon(item.icon, contentDescription = null) },
+                            label = { Text(stringResource(item.label)) }
+                        )
+                    }
+                }
+                Box(Modifier.weight(1f).fillMaxHeight()) { content() }
+            }
+        }
+        else -> Box(modifier = modifier) { content() }
     }
 }

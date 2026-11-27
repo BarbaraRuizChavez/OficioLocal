@@ -34,7 +34,7 @@ object ServiceLocator {
             runCatching { providerRepository.fixDemoPhones() }
             runCatching { reviewRepository.syncPending() }
             runCatching { reviewRepository.refreshFromApi() }
-            runCatching { mediaAttachmentRepository.syncPendingUploads() }
+            runCatching { mediaAttachmentRepository.normalizeLocalOnlyAttachments() }
             runCatching { PushTokenRepository.syncCurrentUserToken() }
         }
     }
@@ -64,7 +64,8 @@ object ServiceLocator {
             appScope,
             notificationRepository,
             authRepository,
-            providerRepository
+            providerRepository,
+            mediaAttachmentRepository
         )
     }
     val requestRepository: RequestRepository get() = roomRequestRepository

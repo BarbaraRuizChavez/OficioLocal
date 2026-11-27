@@ -302,7 +302,8 @@ private fun DirectoryList(
 fun ProviderDetailScreen(
     providerId: String,
     onBackClick: () -> Unit,
-    onRequestClick: () -> Unit
+    onRequestClick: () -> Unit,
+    showBackButton: Boolean = true
 ) {
     val context = LocalContext.current
     val noApp = stringResource(R.string.provider_no_app)
@@ -324,11 +325,13 @@ fun ProviderDetailScreen(
             TopAppBar(
                 title = { Text(currentProvider?.name ?: stringResource(R.string.provider_detail_title)) },
                 navigationIcon = {
-                    IconButton(onClick = onBackClick) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.back)
-                        )
+                    if (showBackButton) {
+                        IconButton(onClick = onBackClick) {
+                            Icon(
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = stringResource(R.string.back)
+                            )
+                        }
                     }
                 },
                 actions = {
@@ -365,6 +368,7 @@ fun ProviderDetailScreen(
                 Column(
                     modifier = Modifier
                         .widthIn(max = 640.dp)
+                        .fillMaxWidth()
                         .verticalScroll(rememberScrollState())
                         .padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(12.dp)

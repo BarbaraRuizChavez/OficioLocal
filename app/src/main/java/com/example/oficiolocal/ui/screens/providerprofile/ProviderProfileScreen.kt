@@ -3,6 +3,7 @@ package com.example.oficiolocal.ui.screens.providerprofile
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -20,6 +21,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -32,6 +34,7 @@ import com.example.oficiolocal.R
 @Composable
 fun ProviderProfileScreen(
     onBackClick: () -> Unit,
+    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
     viewModel: ProviderProfileViewModel = viewModel()
 ) {
     Scaffold(
@@ -55,62 +58,41 @@ fun ProviderProfileScreen(
         ) {
             Column(
                 modifier = Modifier
-                    .widthIn(max = 640.dp)
+                    .widthIn(max = if (widthSizeClass == WindowWidthSizeClass.Expanded) 1120.dp else 640.dp)
                     .fillMaxWidth()
                     .verticalScroll(rememberScrollState())
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
-                    value = viewModel.category,
-                    onValueChange = { viewModel.category = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_category)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = viewModel.location,
-                    onValueChange = { viewModel.location = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_location)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = viewModel.priceRange,
-                    onValueChange = { viewModel.priceRange = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_price)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = viewModel.schedule,
-                    onValueChange = { viewModel.schedule = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_schedule)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = viewModel.phone,
-                    onValueChange = { viewModel.phone = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_phone)) },
-                    singleLine = true
-                )
-                OutlinedTextField(
-                    value = viewModel.description,
-                    onValueChange = { viewModel.description = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_description)) },
-                    minLines = 3
-                )
-                OutlinedTextField(
-                    value = viewModel.services,
-                    onValueChange = { viewModel.services = it },
-                    modifier = Modifier.fillMaxWidth(),
-                    label = { Text(stringResource(R.string.pp_services)) },
-                    supportingText = { Text(stringResource(R.string.pp_services_hint)) },
-                    minLines = 2
-                )
+                if (widthSizeClass == WindowWidthSizeClass.Expanded) {
+                    Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            CategoryField(viewModel)
+                            LocationField(viewModel)
+                            PriceField(viewModel)
+                            ScheduleField(viewModel)
+                        }
+                        Column(
+                            modifier = Modifier.weight(1f),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            PhoneField(viewModel)
+                            DescriptionField(viewModel)
+                            ServicesField(viewModel)
+                        }
+                    }
+                } else {
+                    CategoryField(viewModel)
+                    LocationField(viewModel)
+                    PriceField(viewModel)
+                    ScheduleField(viewModel)
+                    PhoneField(viewModel)
+                    DescriptionField(viewModel)
+                    ServicesField(viewModel)
+                }
 
                 Button(
                     onClick = viewModel::save,
@@ -129,4 +111,82 @@ fun ProviderProfileScreen(
             }
         }
     }
+}
+
+@Composable
+private fun CategoryField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.category,
+        onValueChange = { viewModel.category = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_category)) },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun LocationField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.location,
+        onValueChange = { viewModel.location = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_location)) },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun PriceField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.priceRange,
+        onValueChange = { viewModel.priceRange = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_price)) },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun ScheduleField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.schedule,
+        onValueChange = { viewModel.schedule = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_schedule)) },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun PhoneField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.phone,
+        onValueChange = { viewModel.phone = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_phone)) },
+        singleLine = true
+    )
+}
+
+@Composable
+private fun DescriptionField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.description,
+        onValueChange = { viewModel.description = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_description)) },
+        minLines = 3
+    )
+}
+
+@Composable
+private fun ServicesField(viewModel: ProviderProfileViewModel) {
+    OutlinedTextField(
+        value = viewModel.services,
+        onValueChange = { viewModel.services = it },
+        modifier = Modifier.fillMaxWidth(),
+        label = { Text(stringResource(R.string.pp_services)) },
+        supportingText = { Text(stringResource(R.string.pp_services_hint)) },
+        minLines = 2
+    )
 }

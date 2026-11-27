@@ -13,11 +13,17 @@ interface MediaAttachmentDao {
     @Query("SELECT * FROM media_attachments WHERE ownerType = :ownerType AND ownerId = :ownerId ORDER BY createdAt DESC")
     fun observeForOwner(ownerType: String, ownerId: String): Flow<List<MediaAttachmentEntity>>
 
+    @Query("SELECT * FROM media_attachments WHERE ownerType = :ownerType AND ownerId = :ownerId")
+    suspend fun getForOwner(ownerType: String, ownerId: String): List<MediaAttachmentEntity>
+
     @Query("SELECT * FROM media_attachments WHERE id = :id LIMIT 1")
     suspend fun getById(id: String): MediaAttachmentEntity?
 
     @Query("SELECT * FROM media_attachments WHERE syncState IN ('PENDING', 'FAILED') ORDER BY createdAt ASC")
     suspend fun getPendingUploads(): List<MediaAttachmentEntity>
+
+    @Query("UPDATE media_attachments SET syncState = 'LOCAL_ONLY', remoteUrl = NULL")
+    suspend fun markAllLocalOnly()
 
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun upsert(attachment: MediaAttachmentEntity)

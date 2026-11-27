@@ -105,6 +105,9 @@
     <string name="directory_search_hint">Buscar por nombre o ubicación...</string>
     <string name="directory_search">Buscar</string>
     <string name="directory_empty">No se encontraron prestadores.</string>
+    <string name="directory_select_provider">Selecciona un prestador para ver sus detalles</string>
+    <string name="tracking_select_request">Selecciona una solicitud para ver sus detalles</string>
+    <string name="profile_preferences_title">Preferencias y sesión</string>
     <string name="provider_price_label">Precio aprox.: %1$s</string>
     <string name="provider_detail_title">Detalle del Prestador</string>
     <string name="provider_not_found">Prestador no encontrado</string>

@@ -31,7 +31,8 @@ class RoomRequestRepository(
     private val scope: CoroutineScope,
     private val notifications: NotificationRepository,
     private val auth: AuthRepository,
-    private val providers: ProviderRepository
+    private val providers: ProviderRepository,
+    private val mediaAttachments: MediaAttachmentRepository
 ) : RequestRepository {
 
     override val requests: Flow<List<ServiceRequest>> =
@@ -93,11 +94,16 @@ class RoomRequestRepository(
     }
 
     override suspend fun delete(id: String) {
-        val entity = dao.getById(id)
-        val userId = auth.getFirebaseUserId()
+        val entity = dao.getById(id) ?: return
+        val user = auth.getCurrentUser() ?: return
+        val firebaseUserId = auth.getFirebaseUserId()
+        val ownerId = firebaseUserId ?: user.id
+        if (entity.clientId != ownerId) return
+
+        mediaAttachments.deleteForRequest(id)
         dao.delete(id)
-        val remoteId = entity?.remoteId
-        if (remoteId != null && userId != null && entity?.clientId == userId) {
+        val remoteId = entity.remoteId
+        if (remoteId != null && firebaseUserId != null) {
             scope.launch { remote.deleteRequest(remoteId) }
         }
     }
