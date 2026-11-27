@@ -1,5 +1,6 @@
 package com.example.oficiolocal.data.repository
 
+import android.net.Uri
 import com.example.oficiolocal.data.local.dao.ProviderDao
 import com.example.oficiolocal.data.local.entity.toDomain
 import com.example.oficiolocal.data.local.entity.toEntity
@@ -11,8 +12,13 @@ import kotlinx.coroutines.runBlocking
 class ProviderRepository(
     private val dao: ProviderDao,
     private val remote: RemoteRepository,
-    private val auth: AuthRepository
+    private val auth: AuthRepository,
+    private val photos: PhotoStorage
 ) {
+
+    companion object {
+        const val MAX_WORK_PHOTOS = 8
+    }
 
     // Datos de ejemplo: se usan solo si la base está vacía y aún no hay internet.
     private val seed = listOf(
@@ -67,7 +73,7 @@ class ProviderRepository(
         val remoteProvider = remote.getProvider(id).getOrNull()
             ?.takeIf { it.name.isNotBlank() }
         if (remoteProvider != null) {
-            persistLocal(remoteProvider)
+            persistLocal(withLocalPhotos(remoteProvider))
             return
         }
 
@@ -100,20 +106,50 @@ class ProviderRepository(
         return ownerUid != null && remote.upsertProvider(ownedProvider).isSuccess
     }
 
+    /** Guarda la foto de perfil del prestador en este teléfono. */
+    suspend fun setAvatar(id: String, uri: Uri): Result<Unit> = runCatching {
+        val current = getProviderById(id) ?: throw IllegalStateException("Perfil no encontrado")
+        val saved = photos.save("providers/$id", uri)
+        persistLocal(current.copy(photoUrl = saved))
+        current.photoUrl?.let { photos.delete(it) }
+    }
+
+    /** Agrega una foto de trabajo a la galería local del prestador. */
+    suspend fun addWorkPhoto(id: String, uri: Uri): Result<Unit> = runCatching {
+        val current = getProviderById(id) ?: throw IllegalStateException("Perfil no encontrado")
+        if (current.gallery.size >= MAX_WORK_PHOTOS) throw IllegalStateException("Límite de fotos")
+        val saved = photos.save("providers/$id/work", uri)
+        persistLocal(current.copy(gallery = current.gallery + saved))
+    }
+
+    /** Quita una foto de trabajo de la galería. */
+    suspend fun removeWorkPhoto(id: String, url: String): Result<Unit> = runCatching {
+        val current = getProviderById(id) ?: throw IllegalStateException("Perfil no encontrado")
+        persistLocal(current.copy(gallery = current.gallery - url))
+        photos.delete(url)
+    }
+
+    /** Las fotos solo existen en este teléfono: al traer datos de Firestore se conservan. */
+    private fun withLocalPhotos(provider: Provider): Provider {
+        val local = cache.find { it.id == provider.id } ?: return provider
+        return provider.copy(photoUrl = local.photoUrl, gallery = local.gallery)
+    }
+
     /** Actualiza el perfil desde Firestore; mantiene la copia local si no hay conexión. */
     suspend fun refreshOne(id: String): Provider? {
         val provider = remote.getProvider(id).getOrNull()
             ?.takeIf { it.name.isNotBlank() }
             ?: return getProviderById(id)
-        persistLocal(provider)
-        return provider
+        val merged = withLocalPhotos(provider)
+        persistLocal(merged)
+        return merged
     }
 
     /** Pide los prestadores a la API y los guarda en Room. Devuelve false si no hubo red. */
     suspend fun refreshFromApi(): Boolean {
         val list = remote.getProviders().getOrNull() ?: return false
         if (list.isEmpty()) return false
-        dao.insertAll(list.map { it.toEntity() })
+        dao.insertAll(list.map { withLocalPhotos(it).toEntity() })
         cache = dao.getAll().map { it.toDomain() }
         return true
     }

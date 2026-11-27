@@ -6,6 +6,8 @@ import android.content.Intent
 import android.net.Uri
 import android.widget.Toast
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.*
@@ -46,6 +48,7 @@ import com.example.oficiolocal.ui.components.FavoriteButton
 import com.example.oficiolocal.ui.components.ProviderAvatar
 import com.example.oficiolocal.ui.components.categoryStyle
 import com.example.oficiolocal.ui.components.ReviewsSection
+import com.example.oficiolocal.ui.components.WorkGallery
 import com.example.oficiolocal.ui.components.isAvailableToday
 import com.example.oficiolocal.ui.components.maxPriceOf
 import kotlinx.coroutines.launch
@@ -253,7 +256,7 @@ private fun DirectoryList(
                             modifier = Modifier.padding(14.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            ProviderAvatar(category = provider.category, size = 60.dp)
+                            ProviderAvatar(category = provider.category, size = 60.dp, photoUrl = provider.photoUrl)
                             Spacer(modifier = Modifier.width(14.dp))
                             Column(modifier = Modifier.weight(1f)) {
                                 Row(
@@ -378,15 +381,12 @@ fun ProviderDetailScreen(
                             .padding(20.dp)
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Box(
-                                modifier = Modifier
-                                    .size(72.dp)
-                                    .clip(RoundedCornerShape(50))
-                                    .background(Color.White.copy(alpha = 0.25f)),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(style.icon, contentDescription = null, tint = Color.White, modifier = Modifier.size(40.dp))
-                            }
+                            ProviderAvatar(
+                                category = currentProvider.category,
+                                photoUrl = currentProvider.photoUrl,
+                                size = 72.dp,
+                                modifier = Modifier.border(3.dp, Color.White.copy(alpha = 0.7f), CircleShape)
+                            )
                             Spacer(modifier = Modifier.width(16.dp))
                             Column {
                                 Text(text = currentProvider.name, style = MaterialTheme.typography.titleLarge, color = Color.White)
@@ -436,6 +436,14 @@ fun ProviderDetailScreen(
                         currentProvider.services.forEach { service ->
                             Text(text = "• $service", style = MaterialTheme.typography.bodyMedium)
                         }
+                    }
+                    if (currentProvider.gallery.isNotEmpty()) {
+                        Text(
+                            text = stringResource(R.string.provider_work_title),
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = FontWeight.Bold
+                        )
+                        WorkGallery(photos = currentProvider.gallery)
                     }
                     Spacer(modifier = Modifier.height(8.dp))
                     Button(

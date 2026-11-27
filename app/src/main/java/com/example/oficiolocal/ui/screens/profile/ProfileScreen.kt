@@ -5,7 +5,19 @@ import android.content.Context
 import android.os.Build
 import android.os.LocaleList
 import androidx.annotation.StringRes
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CameraAlt
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.Icon
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Color
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -66,6 +78,9 @@ fun ProfileScreen(
     var showEditName by remember { mutableStateOf(false) }
     var editedName by remember { mutableStateOf("") }
     var showDeleteAccount by remember { mutableStateOf(false) }
+    val photoPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri -> viewModel.onPhotoPicked(uri) }
 
     Box(
         modifier = Modifier.fillMaxSize(),
@@ -89,7 +104,42 @@ fun ProfileScreen(
                         modifier = Modifier.padding(16.dp),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
-                        UserAvatar(name = currentUser.name, size = 64.dp)
+                        Box(
+                            modifier = Modifier.clickable(enabled = !viewModel.photoUploading) {
+                                photoPicker.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            }
+                        ) {
+                            UserAvatar(
+                                name = currentUser.name,
+                                photoUrl = currentUser.photoUrl,
+                                size = 64.dp
+                            )
+                            if (viewModel.photoUploading) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(64.dp).padding(14.dp),
+                                    color = Color.White,
+                                    strokeWidth = 3.dp
+                                )
+                            } else {
+                                Box(
+                                    modifier = Modifier
+                                        .align(Alignment.BottomEnd)
+                                        .size(22.dp)
+                                        .clip(CircleShape)
+                                        .background(MaterialTheme.colorScheme.primary),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        Icons.Filled.CameraAlt,
+                                        contentDescription = stringResource(R.string.profile_change_photo),
+                                        tint = Color.White,
+                                        modifier = Modifier.size(13.dp)
+                                    )
+                                }
+                            }
+                        }
                         Spacer(Modifier.width(16.dp))
                         Column {
                             Text(currentUser.name, style = MaterialTheme.typography.titleMedium)
@@ -110,6 +160,13 @@ fun ProfileScreen(
                             }
                         }
                     }
+                }
+                viewModel.photoMessage?.let { message ->
+                    Text(
+                        text = stringResource(message),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
                 if (currentUser.isProvider) {
                     OutlinedButton(

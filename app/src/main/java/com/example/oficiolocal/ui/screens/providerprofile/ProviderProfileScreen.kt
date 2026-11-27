@@ -1,10 +1,22 @@
 package com.example.oficiolocal.ui.screens.providerprofile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.ui.text.font.FontWeight
+import com.example.oficiolocal.ui.components.ProviderAvatar
+import com.example.oficiolocal.ui.components.WorkGallery
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
@@ -34,6 +46,13 @@ fun ProviderProfileScreen(
     onBackClick: () -> Unit,
     viewModel: ProviderProfileViewModel = viewModel()
 ) {
+    val avatarPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickVisualMedia()
+    ) { uri -> viewModel.onAvatarPicked(uri) }
+    val workPicker = rememberLauncherForActivityResult(
+        ActivityResultContracts.PickMultipleVisualMedia(maxItems = 5)
+    ) { uris -> viewModel.onWorkPhotosPicked(uris) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -61,6 +80,66 @@ fun ProviderProfileScreen(
                     .padding(16.dp),
                 verticalArrangement = Arrangement.spacedBy(12.dp)
             ) {
+                Text(
+                    text = stringResource(R.string.pp_photo_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    ProviderAvatar(
+                        category = viewModel.category,
+                        photoUrl = viewModel.photoUrl,
+                        size = 88.dp
+                    )
+                    Spacer(Modifier.width(16.dp))
+                    OutlinedButton(
+                        onClick = {
+                            avatarPicker.launch(
+                                PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                            )
+                        },
+                        enabled = !viewModel.photoBusy && viewModel.canSave
+                    ) {
+                        Text(stringResource(R.string.pp_photo_change))
+                    }
+                    if (viewModel.photoBusy) {
+                        Spacer(Modifier.width(12.dp))
+                        CircularProgressIndicator(modifier = Modifier.size(24.dp), strokeWidth = 3.dp)
+                    }
+                }
+
+                Text(
+                    text = stringResource(R.string.pp_work_title),
+                    style = MaterialTheme.typography.titleSmall,
+                    fontWeight = FontWeight.Bold
+                )
+                if (viewModel.gallery.isNotEmpty()) {
+                    WorkGallery(photos = viewModel.gallery, onRemove = viewModel::removeWorkPhoto)
+                }
+                Text(
+                    text = stringResource(R.string.pp_work_hint),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                OutlinedButton(
+                    onClick = {
+                        workPicker.launch(
+                            PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                        )
+                    },
+                    enabled = !viewModel.photoBusy && viewModel.canSave && viewModel.canAddWorkPhotos,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(stringResource(R.string.pp_work_add))
+                }
+                viewModel.photoMessage?.let { message ->
+                    Text(
+                        text = stringResource(message),
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
+                }
+
                 OutlinedTextField(
                     value = viewModel.category,
                     onValueChange = { viewModel.category = it },

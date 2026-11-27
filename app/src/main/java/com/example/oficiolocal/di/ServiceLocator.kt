@@ -6,6 +6,7 @@ import com.example.oficiolocal.data.repository.AuthRepository
 import com.example.oficiolocal.data.repository.FavoriteRepository
 import com.example.oficiolocal.data.repository.MediaAttachmentRepository
 import com.example.oficiolocal.data.repository.NotificationRepository
+import com.example.oficiolocal.data.repository.PhotoStorage
 import com.example.oficiolocal.data.repository.ProviderRepository
 import com.example.oficiolocal.data.repository.PushTokenRepository
 import com.example.oficiolocal.data.repository.RemoteRepository
@@ -41,10 +42,12 @@ object ServiceLocator {
 
     private val remoteRepository by lazy { RemoteRepository() }
 
-    val authRepository by lazy { AuthRepository(database.userDao(), applicationContext) }
+    private val photoStorage by lazy { PhotoStorage(applicationContext) }
+
+    val authRepository by lazy { AuthRepository(database.userDao(), applicationContext, photoStorage) }
     val favoriteRepository by lazy { FavoriteRepository(database.favoriteDao(), authRepository) }
     val providerRepository by lazy {
-        ProviderRepository(database.providerDao(), remoteRepository, authRepository)
+        ProviderRepository(database.providerDao(), remoteRepository, authRepository, photoStorage)
     }
     val reviewRepository by lazy {
         ReviewRepository(database.reviewDao(), remoteRepository, authRepository)

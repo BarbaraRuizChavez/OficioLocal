@@ -30,6 +30,8 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.Dp
@@ -55,7 +57,12 @@ fun categoryStyle(category: String): CategoryStyle {
 
 /** Avatar redondo con degradado y el \u00edcono del oficio. */
 @Composable
-fun ProviderAvatar(category: String, modifier: Modifier = Modifier, size: Dp = 56.dp) {
+fun ProviderAvatar(
+    category: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 56.dp,
+    photoUrl: String? = null
+) {
     val style = categoryStyle(category)
     Box(
         modifier = modifier
@@ -70,12 +77,26 @@ fun ProviderAvatar(category: String, modifier: Modifier = Modifier, size: Dp = 5
             tint = Color.White,
             modifier = Modifier.size(size * 0.52f)
         )
+        // La foto se dibuja encima; mientras carga (o si falla) se ve el avatar de arriba.
+        if (!photoUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        }
     }
 }
 
 /** Avatar con la inicial del usuario. */
 @Composable
-fun UserAvatar(name: String, modifier: Modifier = Modifier, size: Dp = 56.dp) {
+fun UserAvatar(
+    name: String,
+    modifier: Modifier = Modifier,
+    size: Dp = 56.dp,
+    photoUrl: String? = null
+) {
     Box(
         modifier = modifier
             .size(size)
@@ -93,6 +114,14 @@ fun UserAvatar(name: String, modifier: Modifier = Modifier, size: Dp = 56.dp) {
             fontWeight = FontWeight.Bold,
             fontSize = (size.value * 0.42f).sp
         )
+        if (!photoUrl.isNullOrBlank()) {
+            AsyncImage(
+                model = photoUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.matchParentSize()
+            )
+        }
     }
 }
 

@@ -4,5 +4,6 @@ data class User(
     val id: String,
     val name: String,
     val email: String,
-    val isProvider: Boolean = false
+    val isProvider: Boolean = false,
+    val photoUrl: String? = null
 )
