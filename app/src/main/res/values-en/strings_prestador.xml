@@ -27,4 +27,15 @@
     <string name="rd_materials">Requires materials</string>
     <string name="rd_yes">Yes</string>
     <string name="rd_no">No</string>
+    <string name="profile_change_photo">Change profile photo</string>
+    <string name="photo_error">The photo could not be saved. Please try again.</string>
+    <string name="photo_limit">You reached the limit of 8 work photos. Remove one to add another.</string>
+    <string name="photo_remove">Remove photo</string>
+    <string name="work_photo_description">Photo of a finished job</string>
+    <string name="pp_photo_title">Profile photo</string>
+    <string name="pp_photo_change">Change photo</string>
+    <string name="pp_work_title">Photos of my work</string>
+    <string name="pp_work_hint">Up to 8 photos. They are saved only on this phone. Tap one to view it, or the X to remove it.</string>
+    <string name="pp_work_add">Add work photos</string>
+    <string name="provider_work_title">Finished jobs</string>
 </resources>

@@ -87,6 +87,7 @@ fun MyRequestsScreen(
     viewModel: MyRequestsViewModel = viewModel()
 ) {
     val requests by viewModel.requests.collectAsState()
+    val viewer by com.example.oficiolocal.di.ServiceLocator.authRepository.currentUser.collectAsState()
     val selected by viewModel.selected.collectAsState()
     val filters: List<RequestStatus?> = listOf(null) + RequestStatus.entries
     var requestToEdit by remember { mutableStateOf<ServiceRequest?>(null) }
@@ -163,9 +164,12 @@ fun MyRequestsScreen(
                 }
             }
 
-            Spacer(Modifier.height(12.dp))
-            Button(onClick = onNewRequest, modifier = Modifier.fillMaxWidth()) {
-                Text(stringResource(R.string.request_service))
+            // Solo los clientes solicitan servicios; el prestador solo recibe y atiende solicitudes.
+            if (viewer?.isProvider != true) {
+                Spacer(Modifier.height(12.dp))
+                Button(onClick = onNewRequest, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.request_service))
+                }
             }
         }
     }

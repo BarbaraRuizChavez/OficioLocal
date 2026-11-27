@@ -17,7 +17,9 @@ data class ProviderEntity(
     val phone: String,
     val description: String,
     val services: String, // servicios separados por "|"
-    val ownerUid: String? = null
+    val ownerUid: String? = null,
+    val photoUrl: String? = null,
+    val gallery: String = "" // URLs separadas por salto de línea
 )
 
 fun ProviderEntity.toDomain() = Provider(
@@ -25,7 +27,9 @@ fun ProviderEntity.toDomain() = Provider(
     rating = rating, reviewCount = reviewCount, priceRange = priceRange,
     schedule = schedule, phone = phone, description = description,
     services = if (services.isBlank()) emptyList() else services.split("|"),
-    ownerUid = ownerUid
+    ownerUid = ownerUid,
+    photoUrl = photoUrl,
+    gallery = if (gallery.isBlank()) emptyList() else gallery.split("\n")
 )
 
 fun Provider.toEntity() = ProviderEntity(
@@ -33,5 +37,7 @@ fun Provider.toEntity() = ProviderEntity(
     rating = rating, reviewCount = reviewCount, priceRange = priceRange,
     schedule = schedule, phone = phone, description = description,
     services = services.joinToString("|"),
-    ownerUid = ownerUid
+    ownerUid = ownerUid,
+    photoUrl = photoUrl,
+    gallery = gallery.joinToString("\n")
 )

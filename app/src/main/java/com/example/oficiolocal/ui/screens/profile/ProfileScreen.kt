@@ -9,9 +9,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -28,7 +26,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.VerticalDivider
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -41,7 +38,6 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.material3.windowsizeclass.WindowWidthSizeClass
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.oficiolocal.R
 import com.example.oficiolocal.ui.components.UserAvatar
@@ -59,8 +55,6 @@ private fun setLanguage(context: Context, tag: String) {
 fun ProfileScreen(
     onLogout: () -> Unit,
     onEditProviderProfile: () -> Unit,
-    widthSizeClass: WindowWidthSizeClass = WindowWidthSizeClass.Compact,
-    showProviderEditButton: Boolean = true,
     viewModel: ProfileViewModel = viewModel()
 ) {
     val darkMode by viewModel.darkMode.collectAsState()
@@ -73,7 +67,17 @@ fun ProfileScreen(
     var editedName by remember { mutableStateOf("") }
     var showDeleteAccount by remember { mutableStateOf(false) }
 
-    val accountContent: @Composable ColumnScope.() -> Unit = {
+    Box(
+        modifier = Modifier.fillMaxSize(),
+        contentAlignment = Alignment.TopCenter
+    ) {
+        Column(
+            modifier = Modifier
+                .widthIn(max = 640.dp)
+                .verticalScroll(rememberScrollState())
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
             Text(
                 text = stringResource(R.string.profile_title),
                 style = MaterialTheme.typography.headlineSmall
@@ -107,7 +111,7 @@ fun ProfileScreen(
                         }
                     }
                 }
-                if (currentUser.isProvider && showProviderEditButton) {
+                if (currentUser.isProvider) {
                     OutlinedButton(
                         onClick = onEditProviderProfile,
                         modifier = Modifier.fillMaxWidth()
@@ -139,13 +143,7 @@ fun ProfileScreen(
                     style = MaterialTheme.typography.bodySmall
                 )
             }
-    }
 
-    val preferencesContent: @Composable ColumnScope.() -> Unit = {
-            Text(
-                text = stringResource(R.string.profile_preferences_title),
-                style = MaterialTheme.typography.titleLarge
-            )
             SettingRow(R.string.dark_theme, darkMode, viewModel::onDarkMode)
             SettingRow(R.string.notifications, notifications, viewModel::onNotifications)
             SettingRow(R.string.simulate_offline, offline, viewModel::onOffline)
@@ -170,41 +168,6 @@ fun ProfileScreen(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(stringResource(R.string.profile_delete_account))
-            }
-    }
-
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        if (widthSizeClass == WindowWidthSizeClass.Expanded) {
-            Row(
-                modifier = Modifier.widthIn(max = 1200.dp).fillMaxSize().padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.Top
-            ) {
-                Column(
-                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    content = accountContent
-                )
-                VerticalDivider()
-                Column(
-                    modifier = Modifier.weight(1f).fillMaxHeight().verticalScroll(rememberScrollState()),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    content = preferencesContent
-                )
-            }
-        } else {
-            Column(
-                modifier = Modifier
-                    .widthIn(max = 640.dp)
-                    .verticalScroll(rememberScrollState())
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                accountContent()
-                preferencesContent()
             }
         }
     }

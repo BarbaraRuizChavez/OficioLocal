@@ -1,6 +1,7 @@
 package com.example.oficiolocal.data.repository
 
 import android.content.Context
+import android.net.Uri
 import com.example.oficiolocal.data.local.dao.UserDao
 import com.example.oficiolocal.data.local.entity.UserEntity
 import com.example.oficiolocal.data.local.entity.toDomain
@@ -22,7 +23,8 @@ import kotlinx.coroutines.withTimeout
 /** Usuarios guardados en Room. La sesión vive en memoria. En la siguiente etapa se suma la API con JWT. */
 class AuthRepository(
     private val userDao: UserDao,
-    context: Context
+    context: Context,
+    private val photos: PhotoStorage
 ) {
     private val seedPreferences = context.getSharedPreferences("oficiolocal_auth", Context.MODE_PRIVATE)
 
@@ -144,6 +146,17 @@ class AuthRepository(
         userDao.update(updated)
         _currentUser.value = updated.toDomain()
         return true
+    }
+
+    /** Guarda la foto de perfil del usuario en este teléfono (no se sube a internet). */
+    suspend fun updateCurrentUserPhoto(uri: Uri): Result<Unit> = runCatching {
+        val current = _currentUser.value ?: throw IllegalStateException("Sin sesión")
+        val local = userDao.findById(current.id) ?: throw IllegalStateException("Usuario no encontrado")
+        val saved = photos.save("users/${current.id}", uri)
+        val updated = local.copy(photoUrl = saved)
+        userDao.update(updated)
+        _currentUser.value = updated.toDomain()
+        current.photoUrl?.let { photos.delete(it) }
     }
 
     suspend fun deleteCurrentAccount(): Boolean {

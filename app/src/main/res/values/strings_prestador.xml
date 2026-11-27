@@ -27,4 +27,15 @@
     <string name="rd_materials">Requiere materiales</string>
     <string name="rd_yes">Sí</string>
     <string name="rd_no">No</string>
+    <string name="profile_change_photo">Cambiar foto de perfil</string>
+    <string name="photo_error">No se pudo guardar la foto. Inténtalo de nuevo.</string>
+    <string name="photo_limit">Llegaste al máximo de 8 fotos de trabajos. Quita una para agregar otra.</string>
+    <string name="photo_remove">Quitar foto</string>
+    <string name="work_photo_description">Foto de un trabajo realizado</string>
+    <string name="pp_photo_title">Foto de perfil</string>
+    <string name="pp_photo_change">Cambiar foto</string>
+    <string name="pp_work_title">Fotos de mis trabajos</string>
+    <string name="pp_work_hint">Hasta 8 fotos. Se guardan solo en este teléfono. Toca una para verla grande o la X para quitarla.</string>
+    <string name="pp_work_add">Agregar fotos de trabajos</string>
+    <string name="provider_work_title">Trabajos realizados</string>
 </resources>

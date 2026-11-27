@@ -13,7 +13,10 @@ data class UserEntity(
     val passwordHash: String,
     val isProvider: Boolean,
     val updatedAt: Long,
-    val pendingSync: Boolean
+    val pendingSync: Boolean,
+    val photoUrl: String? = null
 )
 
-fun UserEntity.toDomain() = User(id = id, name = name, email = email, isProvider = isProvider)
+fun UserEntity.toDomain() = User(
+    id = id, name = name, email = email, isProvider = isProvider, photoUrl = photoUrl
+)

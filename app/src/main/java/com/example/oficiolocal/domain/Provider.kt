@@ -13,5 +13,9 @@ data class Provider(
     val description: String,
     val services: List<String>,
     /** UID Firebase del usuario propietario; null para prestadores de demostración. */
-    val ownerUid: String? = null
+    val ownerUid: String? = null,
+    /** URL de la foto de perfil (Firebase Storage); null si aún no tiene. */
+    val photoUrl: String? = null,
+    /** URLs de fotos de trabajos realizados. */
+    val gallery: List<String> = emptyList()
 )
